@@ -15,6 +15,7 @@ class Product extends Model
         'costprice',
         'created_by',
         'modified_by',
-        'active'
+        'active',
+        'per_pack'
     ];
 }

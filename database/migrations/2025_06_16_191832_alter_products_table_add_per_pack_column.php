@@ -11,13 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('receipts', function (Blueprint $table) {
-            $table->id();
-            $table->integer('station_id');
-            $table->decimal('total_qty');
-            $table->integer('created_by');
-            $table->integer('modified_by')->nullable();
-            $table->timestamps();
+        Schema::table('products', function (Blueprint $table) {
+            $table->integer('per_pack')->nullable();
         });
     }
 
@@ -26,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('receipts');
+        Schema::table('products', function (Blueprint $table) {
+            $table->dropColumn('per_pack');
+        });
     }
 };

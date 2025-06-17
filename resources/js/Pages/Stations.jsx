@@ -201,21 +201,25 @@ const Stations = (props) => {
                                                         direction="row"
                                                         gap={"xxsmall"}
                                                     >
-                                                        <Button
-                                                            icon={
-                                                                <Edit color="accent-1" />
-                                                            }
-                                                            hoverIndicator
-                                                            onClick={() => {
-                                                                setEditId(
-                                                                    station.id
-                                                                );
-                                                                setData({
-                                                                    name: station.name,
-                                                                    type: station.type,
-                                                                });
-                                                            }}
-                                                        />
+                                                        {props.auth.user
+                                                            .role !==
+                                                            "user" && (
+                                                            <Button
+                                                                icon={
+                                                                    <Edit color="accent-1" />
+                                                                }
+                                                                hoverIndicator
+                                                                onClick={() => {
+                                                                    setEditId(
+                                                                        station.id
+                                                                    );
+                                                                    setData({
+                                                                        name: station.name,
+                                                                        type: station.type,
+                                                                    });
+                                                                }}
+                                                            />
+                                                        )}
                                                         {props.auth.user
                                                             .role ===
                                                             "admin" && (

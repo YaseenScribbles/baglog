@@ -777,60 +777,76 @@ const Receipts = (props) => {
                                                     direction="row"
                                                     gap={"xxsmall"}
                                                 >
-                                                    <Button
-                                                        icon={
-                                                            <Edit color="accent-1" />
-                                                        }
-                                                        hoverIndicator
-                                                        onClick={async () => {
-                                                            setLoading(true);
-                                                            reset();
-                                                            setEditId(datum.id);
-                                                            let {
-                                                                data: {
-                                                                    ref_no,
-                                                                    ref_date,
-                                                                    station,
-                                                                    items,
-                                                                },
-                                                            } = await axios.get(
-                                                                "/receipts/" +
+                                                    {props.auth.user.role !==
+                                                        "user" && (
+                                                        <Button
+                                                            icon={
+                                                                <Edit color="accent-1" />
+                                                            }
+                                                            hoverIndicator
+                                                            onClick={async () => {
+                                                                setLoading(
+                                                                    true
+                                                                );
+                                                                reset();
+                                                                setEditId(
                                                                     datum.id
-                                                            );
-
-                                                            setSelectedStation({
-                                                                id: station.id.toString(),
-                                                                name: station.name,
-                                                            });
-
-                                                            setData((prev) => ({
-                                                                ...prev,
-                                                                ref_no: ref_no,
-                                                                ref_date:
-                                                                    format(
+                                                                );
+                                                                let {
+                                                                    data: {
+                                                                        ref_no,
                                                                         ref_date,
-                                                                        "yyyy-MM-dd"
-                                                                    ),
-                                                            }));
+                                                                        station,
+                                                                        items,
+                                                                    },
+                                                                } =
+                                                                    await axios.get(
+                                                                        "/receipts/" +
+                                                                            datum.id
+                                                                    );
 
-                                                            items.forEach(
-                                                                (item) => {
-                                                                    dispatch({
-                                                                        type: "add",
-                                                                        payload:
+                                                                setSelectedStation(
+                                                                    {
+                                                                        id: station.id.toString(),
+                                                                        name: station.name,
+                                                                    }
+                                                                );
+
+                                                                setData(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        ref_no: ref_no,
+                                                                        ref_date:
+                                                                            format(
+                                                                                ref_date,
+                                                                                "yyyy-MM-dd"
+                                                                            ),
+                                                                    })
+                                                                );
+
+                                                                items.forEach(
+                                                                    (item) => {
+                                                                        dispatch(
                                                                             {
-                                                                                id: item.product_id,
-                                                                                name: item
-                                                                                    .product
-                                                                                    .name,
-                                                                                qty: item.qty,
-                                                                            },
-                                                                    });
-                                                                }
-                                                            );
-                                                            setLoading(false);
-                                                        }}
-                                                    />
+                                                                                type: "add",
+                                                                                payload:
+                                                                                    {
+                                                                                        id: item.product_id,
+                                                                                        name: item
+                                                                                            .product
+                                                                                            .name,
+                                                                                        qty: item.qty,
+                                                                                    },
+                                                                            }
+                                                                        );
+                                                                    }
+                                                                );
+                                                                setLoading(
+                                                                    false
+                                                                );
+                                                            }}
+                                                        />
+                                                    )}
                                                     {props.auth.user.role ===
                                                         "admin" && (
                                                         <Button

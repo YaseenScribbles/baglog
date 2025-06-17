@@ -27,6 +27,7 @@ const Products = (props) => {
         code: "",
         name: "",
         costprice: "",
+        per_pack: "",
     });
     const [headerHeight, setHeaderHeight] = useState(0);
     const [products, setProducts] = useState(props.products);
@@ -47,6 +48,7 @@ const Products = (props) => {
             code: "",
             name: "",
             costprice: "",
+            per_pack: "",
         });
         setEditId(null);
     };
@@ -113,7 +115,11 @@ const Products = (props) => {
                     <Box
                         gap={size === "large" ? "medium" : "xxsmall"}
                         border={{ side: "right" }}
-                        pad={size === "large" ? "medium" : "small"}
+                        pad={
+                            size === "large"
+                                ? "medium"
+                                : { horizontal: "small", vertical: "xsmall" }
+                        }
                     >
                         <Heading level={3}>
                             {editId ? "Update Product" : "Create Product"}
@@ -146,6 +152,18 @@ const Products = (props) => {
                                 onChange={handleChange}
                             />
                         </FormField>
+                        <FormField
+                            name="per_pack"
+                            htmlFor="per_pack"
+                            label="Per Pack"
+                        >
+                            <TextInput
+                                id="per_pack"
+                                name="per_pack"
+                                value={data.per_pack ?? ""}
+                                onChange={handleChange}
+                            />
+                        </FormField>
                         <Box direction="row" gap="medium" justify="end">
                             <Button
                                 type="button"
@@ -162,8 +180,12 @@ const Products = (props) => {
                         </Box>
                     </Box>
                     <Box
-                        gap={"small"}
-                        pad={size === "large" ? "medium" : "small"}
+                        gap={size === "large" ? "medium" : "xxsmall"}
+                        pad={
+                            size === "large"
+                                ? "medium"
+                                : { horizontal: "small", vertical: "xsmall" }
+                        }
                     >
                         <Heading level={3}>Products</Heading>
                         <Box
@@ -287,6 +309,10 @@ const Products = (props) => {
                                             header: "Cost Price",
                                         },
                                         {
+                                            property: "per_pack",
+                                            header: "Per Pack",
+                                        },
+                                        {
                                             property: "created_by",
                                             header: "Created By",
                                         },
@@ -298,21 +324,26 @@ const Products = (props) => {
                                                     direction="row"
                                                     gap={"xxsmall"}
                                                 >
-                                                    <Button
-                                                        icon={
-                                                            <Edit color="accent-1" />
-                                                        }
-                                                        hoverIndicator
-                                                        onClick={() => {
-                                                            setEditId(datum.id);
-                                                            setData({
-                                                                code: datum.code,
-                                                                name: datum.name,
-                                                                costprice:
-                                                                    datum.costprice,
-                                                            });
-                                                        }}
-                                                    />
+                                                    {props.auth.user.role !==
+                                                        "user" && (
+                                                        <Button
+                                                            icon={
+                                                                <Edit color="accent-1" />
+                                                            }
+                                                            hoverIndicator
+                                                            onClick={() => {
+                                                                setEditId(
+                                                                    datum.id
+                                                                );
+                                                                setData({
+                                                                    code: datum.code,
+                                                                    name: datum.name,
+                                                                    costprice:
+                                                                        datum.costprice,
+                                                                });
+                                                            }}
+                                                        />
+                                                    )}
                                                     {props.auth.user.role ===
                                                         "admin" && (
                                                         <Button

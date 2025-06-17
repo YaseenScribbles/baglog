@@ -152,7 +152,7 @@ const Users = (props) => {
                             <Select
                                 id="role"
                                 name="role"
-                                options={["admin", "user"]}
+                                options={["admin", "manager" ,"user"]}
                                 value={data.role}
                                 onChange={handleChange}
                             />

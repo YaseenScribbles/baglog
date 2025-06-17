@@ -660,58 +660,70 @@ const Deliveries = (props) => {
                                                     direction="row"
                                                     gap={"xxsmall"}
                                                 >
-                                                    <Button
-                                                        icon={
-                                                            <Edit color="accent-1" />
-                                                        }
-                                                        hoverIndicator
-                                                        onClick={async () => {
-                                                            setLoading(true);
-                                                            reset();
-                                                            setEditId(datum.id);
-                                                            let {
-                                                                data: {
-                                                                    from,
-                                                                    to,
-                                                                    items,
-                                                                },
-                                                            } = await axios.get(
-                                                                "/deliveries/" +
+                                                    {props.auth.user.role !==
+                                                        "user" && (
+                                                        <Button
+                                                            icon={
+                                                                <Edit color="accent-1" />
+                                                            }
+                                                            hoverIndicator
+                                                            onClick={async () => {
+                                                                setLoading(
+                                                                    true
+                                                                );
+                                                                reset();
+                                                                setEditId(
                                                                     datum.id
-                                                            );
+                                                                );
+                                                                let {
+                                                                    data: {
+                                                                        from,
+                                                                        to,
+                                                                        items,
+                                                                    },
+                                                                } =
+                                                                    await axios.get(
+                                                                        "/deliveries/" +
+                                                                            datum.id
+                                                                    );
 
-                                                            setSelectedFromStation(
-                                                                {
-                                                                    id: from.id.toString(),
-                                                                    name: from.name,
-                                                                }
-                                                            );
+                                                                setSelectedFromStation(
+                                                                    {
+                                                                        id: from.id.toString(),
+                                                                        name: from.name,
+                                                                    }
+                                                                );
 
-                                                            setSelectedToStation(
-                                                                {
-                                                                    id: to.id.toString(),
-                                                                    name: to.name,
-                                                                }
-                                                            );
+                                                                setSelectedToStation(
+                                                                    {
+                                                                        id: to.id.toString(),
+                                                                        name: to.name,
+                                                                    }
+                                                                );
 
-                                                            items.forEach(
-                                                                (item) => {
-                                                                    dispatch({
-                                                                        type: "add",
-                                                                        payload:
+                                                                items.forEach(
+                                                                    (item) => {
+                                                                        dispatch(
                                                                             {
-                                                                                id: item.product_id,
-                                                                                name: item
-                                                                                    .product
-                                                                                    .name,
-                                                                                qty: item.qty,
-                                                                            },
-                                                                    });
-                                                                }
-                                                            );
-                                                            setLoading(false);
-                                                        }}
-                                                    />
+                                                                                type: "add",
+                                                                                payload:
+                                                                                    {
+                                                                                        id: item.product_id,
+                                                                                        name: item
+                                                                                            .product
+                                                                                            .name,
+                                                                                        qty: item.qty,
+                                                                                    },
+                                                                            }
+                                                                        );
+                                                                    }
+                                                                );
+                                                                setLoading(
+                                                                    false
+                                                                );
+                                                            }}
+                                                        />
+                                                    )}
                                                     {props.auth.user.role ===
                                                         "admin" && (
                                                         <Button

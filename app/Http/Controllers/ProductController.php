@@ -17,7 +17,7 @@ class ProductController extends Controller
 
         $productsSql = DB::table('products', 'p')
             ->join('users as u', 'u.id', '=', 'p.created_by')
-            ->select(['p.id', 'p.code', 'p.name', 'p.costprice', DB::raw('u.name as created_by')]);
+            ->select(['p.id', 'p.code', 'p.name', 'p.costprice', DB::raw('u.name as created_by'), 'p.per_pack']);
 
         return inertia('Products', [
             'products' => fn() => $productsSql->get()
@@ -41,6 +41,7 @@ class ProductController extends Controller
             'code' => 'required|string|unique:products,code',
             'name' => 'required|string|unique:products,name',
             'costprice' => 'nullable|numeric',
+            'per_pack' => 'nullable|numeric'
         ]);
 
         $data['created_by'] = auth()->user()->id;
@@ -74,6 +75,7 @@ class ProductController extends Controller
             'code' => 'required|string|unique:products,code,' . $product->id,
             'name' => 'required|string|unique:products,name,' . $product->id,
             'costprice' => 'nullable|numeric',
+            'per_pack' => 'nullable|numeric'
         ]);
 
         $data['modified_by'] = auth()->user()->id;

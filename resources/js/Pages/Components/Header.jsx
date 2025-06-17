@@ -76,15 +76,17 @@ const MyHeader = ({ onHeightChange, role }) => {
                         hoverIndicator
                     />
                 )}
-                <Anchor
-                    onClick={() => {
-                        router.visit("/stations");
-                    }}
-                    href="#"
-                    label="Stations"
-                    icon={<Nodes />}
-                    hoverIndicator
-                />
+                {role !== "user" && (
+                    <Anchor
+                        onClick={() => {
+                            router.visit("/stations");
+                        }}
+                        href="#"
+                        label="Stations"
+                        icon={<Nodes />}
+                        hoverIndicator
+                    />
+                )}
                 <Anchor
                     onClick={() => {
                         router.visit("/products");

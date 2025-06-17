@@ -2,7 +2,6 @@ import {
     Box,
     Button,
     DateInput,
-    FormField,
     Grid,
     Heading,
     Spinner,
@@ -18,7 +17,8 @@ import MyHeader from "./Components/Header";
 import { useEffect, useState } from "react";
 import { useForm } from "@inertiajs/react";
 import { format, startOfMonth } from "date-fns";
-import { Search } from "grommet-icons";
+import { Nodes, Search, Download } from "grommet-icons";
+import * as XLSX from "xlsx";
 
 const Dashboard = (props) => {
     const [stations, setStations] = useState([]);
@@ -46,6 +46,68 @@ const Dashboard = (props) => {
         });
     };
 
+    const exportStockToExcel = () => {
+        const workbook = XLSX.utils.book_new();
+
+        const stations = [...new Set(stock.map((s) => s.station))];
+
+        stations.forEach((station) => {
+            const headers = [
+                "Product",
+                "Prev. Qty",
+                "Prev. Value",
+                "Curr. Qty",
+                "Curr. Value",
+                "Del. Qty",
+                "Del. Value",
+            ];
+
+            const filtered = stock.filter((s) => s.station === station);
+
+            const rows = filtered.map((e) => [
+                e.product.toUpperCase(),
+                (+e.from).toFixed(0),
+                (+e.from * +e.cost_price).toFixed(2),
+                (+e.to).toFixed(0),
+                (+e.to * +e.cost_price).toFixed(2),
+                (+e.from - +e.to).toFixed(0),
+                ((+e.from - +e.to) * +e.cost_price).toFixed(2),
+            ]);
+
+            // Footer totals
+            const totals = filtered.reduce(
+                (acc, curr) => {
+                    acc[0] += +curr.from;
+                    acc[1] += +curr.from * +curr.cost_price;
+                    acc[2] += +curr.to;
+                    acc[3] += +curr.to * +curr.cost_price;
+                    acc[4] += +curr.from - +curr.to;
+                    acc[5] += (+curr.from - +curr.to) * +curr.cost_price;
+                    return acc;
+                },
+                [0, 0, 0, 0, 0, 0]
+            );
+
+            const footerRow = [
+                "Total",
+                totals[0].toFixed(0),
+                totals[1].toFixed(2),
+                totals[2].toFixed(0),
+                totals[3].toFixed(2),
+                totals[4].toFixed(0),
+                totals[5].toFixed(2),
+            ];
+
+            const sheetData = [headers, ...rows, footerRow];
+
+            const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+            XLSX.utils.book_append_sheet(workbook, worksheet, station);
+        });
+
+        // Export
+        XLSX.writeFile(workbook, "Stock_By_Station.xlsx");
+    };
+
     return (
         <Box height={"100dvh"}>
             <MyHeader
@@ -60,7 +122,7 @@ const Dashboard = (props) => {
                     <Grid
                         gap={"small"}
                         rows={["70px", "auto"]}
-                        columns={"18%"}
+                        columns={"45%"}
                         pad={"small"}
                     >
                         <Box
@@ -116,6 +178,11 @@ const Dashboard = (props) => {
                                     onClick={getStock}
                                     disabled={processing}
                                 />
+                                <Button
+                                    onClick={exportStockToExcel}
+                                    icon={<Download />}
+                                    primary
+                                />
                             </Box>
                         </Box>
                         {!processing &&
@@ -143,7 +210,10 @@ const Dashboard = (props) => {
                                             {station.toUpperCase()}
                                         </Heading>
                                     </Box>
-                                    <Box width={"100%"} overflow={{ horizontal: "auto" }} >
+                                    <Box
+                                        width={"100%"}
+                                        overflow={{ horizontal: "auto" }}
+                                    >
                                         <Table>
                                             <TableHeader
                                                 style={{
@@ -171,7 +241,7 @@ const Dashboard = (props) => {
                                                                     "serif",
                                                             }}
                                                         >
-                                                            O
+                                                            Prev. Qty
                                                         </Text>
                                                     </TableCell>
                                                     <TableCell align="right">
@@ -182,7 +252,7 @@ const Dashboard = (props) => {
                                                                     "serif",
                                                             }}
                                                         >
-                                                            C
+                                                            Prev. Value
                                                         </Text>
                                                     </TableCell>
                                                     <TableCell align="right">
@@ -193,7 +263,40 @@ const Dashboard = (props) => {
                                                                     "serif",
                                                             }}
                                                         >
-                                                            S
+                                                            Curr. Qty
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            Curr. Value
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            Del. Qty
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            Del. Value
                                                         </Text>
                                                     </TableCell>
                                                 </TableRow>
@@ -233,8 +336,34 @@ const Dashboard = (props) => {
                                                                         color="light-1"
                                                                         size="xsmall"
                                                                     >
+                                                                        {(
+                                                                            +e.from *
+                                                                            +e.cost_price
+                                                                        ).toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </Text>
+                                                                </TableCell>
+                                                                <TableCell align="right">
+                                                                    <Text
+                                                                        color="light-1"
+                                                                        size="xsmall"
+                                                                    >
                                                                         {(+e.to).toFixed(
                                                                             0
+                                                                        )}
+                                                                    </Text>
+                                                                </TableCell>
+                                                                <TableCell align="right">
+                                                                    <Text
+                                                                        color="light-1"
+                                                                        size="xsmall"
+                                                                    >
+                                                                        {(
+                                                                            +e.to *
+                                                                            +e.cost_price
+                                                                        ).toFixed(
+                                                                            2
                                                                         )}
                                                                     </Text>
                                                                 </TableCell>
@@ -251,10 +380,28 @@ const Dashboard = (props) => {
                                                                         )}
                                                                     </Text>
                                                                 </TableCell>
+                                                                <TableCell align="right">
+                                                                    <Text
+                                                                        color="light-1"
+                                                                        size="xsmall"
+                                                                    >
+                                                                        {(
+                                                                            (+e.from -
+                                                                                +e.to) *
+                                                                            +e.cost_price
+                                                                        ).toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </Text>
+                                                                </TableCell>
                                                             </TableRow>
                                                         ))}
                                             </TableBody>
-                                            <TableFooter style={{ borderTop: "2px solid #fff" }}>
+                                            <TableFooter
+                                                style={{
+                                                    borderTop: "2px solid #fff",
+                                                }}
+                                            >
                                                 <TableRow>
                                                     <TableCell></TableCell>
                                                     <TableCell align="right">
@@ -303,10 +450,64 @@ const Dashboard = (props) => {
                                                                         curr
                                                                     ) =>
                                                                         acc +
+                                                                        +curr.from *
+                                                                            +curr.cost_price,
+                                                                    0
+                                                                )
+                                                                .toFixed(2)}
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            {stock
+                                                                .filter(
+                                                                    (s) =>
+                                                                        s.station ==
+                                                                        station
+                                                                )
+                                                                .reduce(
+                                                                    (
+                                                                        acc,
+                                                                        curr
+                                                                    ) =>
+                                                                        acc +
                                                                         +curr.to,
                                                                     0
                                                                 )
                                                                 .toFixed(0)}
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            {stock
+                                                                .filter(
+                                                                    (s) =>
+                                                                        s.station ==
+                                                                        station
+                                                                )
+                                                                .reduce(
+                                                                    (
+                                                                        acc,
+                                                                        curr
+                                                                    ) =>
+                                                                        acc +
+                                                                        +curr.to *
+                                                                            +curr.cost_price,
+                                                                    0
+                                                                )
+                                                                .toFixed(2)}
                                                         </Text>
                                                     </TableCell>
                                                     <TableCell align="right">
@@ -334,6 +535,34 @@ const Dashboard = (props) => {
                                                                     0
                                                                 )
                                                                 .toFixed(0)}
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            {stock
+                                                                .filter(
+                                                                    (s) =>
+                                                                        s.station ==
+                                                                        station
+                                                                )
+                                                                .reduce(
+                                                                    (
+                                                                        acc,
+                                                                        curr
+                                                                    ) =>
+                                                                        acc +
+                                                                        (+curr.from -
+                                                                            +curr.to) *
+                                                                            +curr.cost_price,
+                                                                    0
+                                                                )
+                                                                .toFixed(2)}
                                                         </Text>
                                                     </TableCell>
                                                 </TableRow>

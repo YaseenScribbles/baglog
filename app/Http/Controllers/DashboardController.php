@@ -38,6 +38,7 @@ class DashboardController extends Controller
             ->select([
                 DB::raw("s.name as station"),
                 DB::raw("p.name as product"),
+                DB::raw("coalesce(p.costprice, 0) as cost_price"),
                 DB::raw("coalesce(from_stock.stock, 0) as [from]"),
                 DB::raw("coalesce(to_stock.stock, 0) as [to]"),
 
