@@ -19,6 +19,18 @@ const customTheme = deepMerge(grommet, {
                 dark: "#C27B00",
                 light: "#C27B00",
             },
+            "neutral-5": {
+                dark: "#009E67",
+                light: "#009E67",
+            },
+            "neutral-6": {
+                dark: "#023047",
+                light: "#023047",
+            },
+            "neutral-7": {
+                dark: "#3a5a40",
+                light: "#3a5a40",
+            },
         },
     },
 });

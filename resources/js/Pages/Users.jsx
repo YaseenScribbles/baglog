@@ -103,7 +103,7 @@ const Users = (props) => {
                 onHeightChange={setHeaderHeight}
                 role={props.auth.user.role}
             />
-            {headerHeight && (
+            {headerHeight > 0 && (
                 <Grid
                     columns={["1/4", "3/4"]}
                     style={{

@@ -114,7 +114,7 @@ const Dashboard = (props) => {
                 role={props.auth.user.role}
                 onHeightChange={setHeaderHeight}
             />
-            {headerHeight && (
+            {headerHeight > 0 && (
                 <Box
                     height={`calc(100% - ${headerHeight}px)`}
                     overflow={{ vertical: "auto" }}

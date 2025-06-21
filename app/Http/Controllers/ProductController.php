@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -41,13 +43,36 @@ class ProductController extends Controller
             'code' => 'required|string|unique:products,code',
             'name' => 'required|string|unique:products,name',
             'costprice' => 'nullable|numeric',
-            'per_pack' => 'nullable|numeric'
+            'per_pack' => 'nullable|numeric',
+            'images' => 'nullable|array',
+            'images.*.image' => 'nullable|image|mimes:jpg,jpeg,png'
         ]);
 
-        $data['created_by'] = auth()->user()->id;
+        $masterData = $request->except('images');
+        $masterData['created_by'] = auth()->user()->id;
+        $images = $request->images;
+        try {
+            //code...
+            DB::beginTransaction();
+            $product = Product::create($masterData);
 
-        Product::create($data);
-        return back()->with('message', 'Product created successfully');
+            if ($images) {
+                foreach ($images as $img) {
+                    $imgPath = $img['image']->store('images', 'public');
+
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'img_path' => $imgPath
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return back()->with('message', 'Product created successfully');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return back()->with('message', $th->getMessage());
+        }
     }
 
     /**
@@ -55,7 +80,18 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
+        return response()->json([
+            'product' => [
+                'id' => $product->id,
+                'code' => $product->code,
+                'name' => $product->name,
+                'costprice' => $product->costprice,
+                'per_pack' => $product->per_pack,
+                'images' => $product->images->map(function ($img) {
+                    return ['img_path' => asset('/storage/' . $img->img_path)];
+                })
+            ]
+        ]);
     }
 
     /**
@@ -71,25 +107,91 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'code' => 'required|string|unique:products,code,' . $product->id,
             'name' => 'required|string|unique:products,name,' . $product->id,
             'costprice' => 'nullable|numeric',
-            'per_pack' => 'nullable|numeric'
+            'per_pack' => 'nullable|numeric',
+            'images' => 'nullable|array',
+            'images.*.is_new' => 'nullable|boolean',
+            'images.*.image' => 'nullable|image|mimes:jpg,jpeg,png',
+            'images.*.path' => 'nullable|string',
         ]);
 
-        $data['modified_by'] = auth()->user()->id;
+        $images = $request->images ?? [];
 
-        $product->update($data);
-        return back()->with('message', 'Product updated successfully');
+        $validated['modified_by'] = auth()->id();
+
+        $masterData = collect($validated)->except('images')->toArray();
+
+        $oldImagePaths = [];
+        $newImages = [];
+
+        foreach ($images as $image) {
+            if (!isset($image['is_new'])) continue;
+
+            if ($image['is_new']) {
+                $newImages[] = $image['image'];
+            } else {
+                $oldImagePaths[] = str_replace(asset('storage') . '/', '', $image['path']);
+            }
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $product->update($masterData);
+
+            $imagesToDelete = $product->images()->whereNotIn('img_path', $oldImagePaths)->get();
+
+            foreach ($imagesToDelete as $image) {
+                Storage::disk('public')->delete($image->img_path);
+            }
+
+            $product->images()->whereNotIn('img_path', $oldImagePaths)->delete();
+
+            foreach ($newImages as $image) {
+                $imgPath = $image->store('images', 'public');
+
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'img_path' => $imgPath,
+                ]);
+            }
+
+            DB::commit();
+            return back()->with('message', 'Product updated successfully');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            Log::error('Product update failed', [
+                'product_id' => $product->id,
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
+            ]);
+
+            return back()->with('message', 'Something went wrong while updating the product.');
+        }
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Product $product)
     {
-        $product->delete();
-        return back()->with('message', $product->name . ' deleted successfully');
+        try {
+            DB::beginTransaction();
+            foreach ($product->images as $img) {
+                Storage::disk('public')->delete($img->img_path);
+            }
+            $product->images()->delete();
+            $product->delete();
+            DB::commit();
+            return back()->with('message', $product->name . ' deleted successfully');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return back()->with('message', $th->getMessage());
+        }
     }
 }

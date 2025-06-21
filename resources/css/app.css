@@ -7,3 +7,15 @@
         opacity: 0;
     }
 }
+
+.fSuosw:not(:first-of-type), .fSuosw button {
+    display: none !important;
+}
+
+/* .gVyYwV, .cgiLzR {
+    visibility: hidden !important;
+} */
+
+/* .cgiLzR button {
+    visibility: hidden !important;
+} */

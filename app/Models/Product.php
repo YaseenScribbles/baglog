@@ -18,4 +18,8 @@ class Product extends Model
         'active',
         'per_pack'
     ];
+
+    public function images(){
+        return $this->hasMany(ProductImage::class);
+    }
 }

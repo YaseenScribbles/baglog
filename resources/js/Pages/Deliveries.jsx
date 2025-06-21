@@ -224,7 +224,7 @@ const Deliveries = (props) => {
                 onHeightChange={setHeaderHeight}
                 role={props.auth.user.role}
             />
-            {headerHeight && (
+            {headerHeight > 0 && (
                 <Grid
                     columns={["1/3", "2/3"]}
                     style={{ height: `calc(100% - ${headerHeight}px)` }}

@@ -44,9 +44,9 @@ const Login = (props) => {
     return (
         <Box height={"100dvh"} justify="center" align="center">
             <Card
-                height={size === "large" ? "50%" : "60%"}
+                // height={size === "large" ? "50%" : "60%"}
                 width="medium"
-                elevation="large"
+                style={{ boxShadow: "none" }}
             >
                 <CardHeader pad="small">
                     <Box

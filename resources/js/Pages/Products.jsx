@@ -6,34 +6,33 @@ import {
     FormField,
     TextInput,
     Button,
-    Table,
-    TableHeader,
-    TableRow,
-    TableCell,
-    TableBody,
     Notification,
     Spinner,
     ResponsiveContext,
     DataTable,
     Data,
-    DataSearch,
+    FileInput,
 } from "grommet";
 import MyHeader from "./Components/Header";
 import { useContext, useState } from "react";
-import { Edit, Trash, Shop } from "grommet-icons";
+import { Edit, Trash, Shop, FormClose } from "grommet-icons";
+import axios from "axios";
 
 const Products = (props) => {
-    const { data, setData, processing, post, put } = useForm({
+    const { data, setData, processing, post } = useForm({
         code: "",
         name: "",
         costprice: "",
         per_pack: "",
+        images: [],
     });
     const [headerHeight, setHeaderHeight] = useState(0);
     const [products, setProducts] = useState(props.products);
     const [editId, setEditId] = useState(null);
     const [message, setMessage] = useState("");
     const size = useContext(ResponsiveContext);
+    const [fileInputKey, setFileInputKey] = useState(Date.now());
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -49,14 +48,17 @@ const Products = (props) => {
             name: "",
             costprice: "",
             per_pack: "",
+            images: [],
         });
         setEditId(null);
+        setFileInputKey(Date.now());
     };
 
     const saveProduct = () => {
         post("/products", {
             preserveScroll: true,
             onSuccess: (page) => {
+                console.log(page.props);
                 if (page.props?.products) {
                     setProducts(page.props.products);
                 }
@@ -71,9 +73,12 @@ const Products = (props) => {
     };
 
     const updateProduct = () => {
-        put("/products/" + editId, {
+        console.log(data);
+        post("/products/" + editId + "?_method=PUT", {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: (page) => {
+                console.log(page.props);
                 if (page.props?.products) {
                     setProducts(page.props.products);
                 }
@@ -81,6 +86,7 @@ const Products = (props) => {
                 setMessage("Product updated successfully");
             },
             onError: (errors) => {
+                console.log(errors);
                 let firstError = Object.values(errors)[0];
                 setMessage(firstError);
             },
@@ -105,80 +111,198 @@ const Products = (props) => {
                 onHeightChange={setHeaderHeight}
                 role={props.auth.user.role}
             />
-            {headerHeight && (
+            {headerHeight > 0 && (
                 <Grid
                     columns={["1/4", "3/4"]}
                     style={{
                         height: `calc(100% - ${headerHeight}px)`,
                     }}
                 >
-                    <Box
-                        gap={size === "large" ? "medium" : "xxsmall"}
-                        border={{ side: "right" }}
-                        pad={
-                            size === "large"
-                                ? "medium"
-                                : { horizontal: "small", vertical: "xsmall" }
-                        }
-                    >
-                        <Heading level={3}>
-                            {editId ? "Update Product" : "Create Product"}
-                        </Heading>
-                        <FormField name="code" htmlFor="code" label="Code">
-                            <TextInput
-                                id="code"
-                                name="code"
-                                value={data.code}
-                                onChange={handleChange}
-                            />
-                        </FormField>
-                        <FormField name="name" htmlFor="name" label="Name">
-                            <TextInput
-                                id="name"
-                                name="name"
-                                value={data.name}
-                                onChange={handleChange}
-                            />
-                        </FormField>
-                        <FormField
-                            name="costprice"
-                            htmlFor="costprice"
-                            label="Cost Price"
-                        >
-                            <TextInput
-                                id="costprice"
-                                name="costprice"
-                                value={data.costprice ?? ""}
-                                onChange={handleChange}
-                            />
-                        </FormField>
-                        <FormField
-                            name="per_pack"
-                            htmlFor="per_pack"
-                            label="Per Pack"
-                        >
-                            <TextInput
-                                id="per_pack"
-                                name="per_pack"
-                                value={data.per_pack ?? ""}
-                                onChange={handleChange}
-                            />
-                        </FormField>
-                        <Box direction="row" gap="medium" justify="end">
-                            <Button
-                                type="button"
-                                primary
-                                label="Submit"
-                                onClick={editId ? updateProduct : saveProduct}
-                                disabled={processing}
-                            />
-                            <Button
-                                type="reset"
-                                label="Reset"
-                                onClick={reset}
-                            />
+                    {loading ? (
+                        <Box align="center" justify="center">
+                            <Spinner color={"accent-1"} />
                         </Box>
-                    </Box>
+                    ) : (
+                        <Box
+                            gap={size === "large" ? "medium" : "xxsmall"}
+                            border={{ side: "right" }}
+                            pad={
+                                size === "large"
+                                    ? "medium"
+                                    : {
+                                          horizontal: "small",
+                                          vertical: "xsmall",
+                                      }
+                            }
+                        >
+                            <Heading level={3}>
+                                {editId ? "Update Product" : "Create Product"}
+                            </Heading>
+                            <Box direction="row" gap={"xsmall"}>
+                                <Box basis="30%">
+                                    <FormField
+                                        name="code"
+                                        htmlFor="code"
+                                        label="Code"
+                                    >
+                                        <TextInput
+                                            id="code"
+                                            name="code"
+                                            value={data.code}
+                                            onChange={handleChange}
+                                        />
+                                    </FormField>
+                                </Box>
+                                <Box basis="70%">
+                                    <FormField
+                                        name="name"
+                                        htmlFor="name"
+                                        label="Name"
+                                    >
+                                        <TextInput
+                                            id="name"
+                                            name="name"
+                                            value={data.name}
+                                            onChange={handleChange}
+                                        />
+                                    </FormField>
+                                </Box>
+                            </Box>
+                            <Box direction="row" gap={"xsmall"}>
+                                <Box>
+                                    <FormField
+                                        name="costprice"
+                                        htmlFor="costprice"
+                                        label="Cost Price"
+                                    >
+                                        <TextInput
+                                            id="costprice"
+                                            name="costprice"
+                                            value={data.costprice ?? ""}
+                                            onChange={handleChange}
+                                        />
+                                    </FormField>
+                                </Box>
+                                <Box>
+                                    <FormField
+                                        name="per_pack"
+                                        htmlFor="per_pack"
+                                        label="Per Pack"
+                                    >
+                                        <TextInput
+                                            id="per_pack"
+                                            name="per_pack"
+                                            value={data.per_pack ?? ""}
+                                            onChange={handleChange}
+                                        />
+                                    </FormField>
+                                </Box>
+                            </Box>
+                            <Box
+                                margin={{ bottom: "small" }}
+                                flex="grow"
+                                height={"300px"}
+                                overflow={{ vertical: "auto" }}
+                            >
+                                <FileInput
+                                    key={fileInputKey}
+                                    name="file"
+                                    onChange={(event) => {
+                                        const fileList = Array.from(
+                                            event.target.files
+                                        );
+                                        const newImages = fileList.map(
+                                            (file) => ({
+                                                is_new: true,
+                                                image: file,
+                                                path: URL.createObjectURL(file),
+                                            })
+                                        );
+
+                                        setData((prev) => ({
+                                            ...prev,
+                                            images: [
+                                                ...prev.images,
+                                                ...newImages,
+                                            ],
+                                        }));
+                                    }}
+                                    multiple
+                                />
+
+                                <Box direction="row" wrap>
+                                    {data.images &&
+                                        data.images.length > 0 &&
+                                        data.images.map((image, index) => (
+                                            <Box
+                                                key={index}
+                                                height="125px"
+                                                width="125px"
+                                                margin="xsmall"
+                                                round="small"
+                                                overflow="hidden"
+                                                background="light-2"
+                                                align="center"
+                                                justify="center"
+                                                style={{ position: "relative" }}
+                                            >
+                                                <img
+                                                    src={image.path}
+                                                    alt="preview"
+                                                    height="100%"
+                                                    style={{
+                                                        objectFit: "cover",
+                                                        width: "100%",
+                                                    }}
+                                                />
+                                                <Button
+                                                    icon={
+                                                        <FormClose color="status-critical" />
+                                                    }
+                                                    onClick={() => {
+                                                        const updated =
+                                                            data.images.filter(
+                                                                (_, i) =>
+                                                                    i !== index
+                                                            );
+                                                        setData((prev) => ({
+                                                            ...prev,
+                                                            images: updated,
+                                                        }));
+                                                    }}
+                                                    plain
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: "2px",
+                                                        right: "2px",
+                                                        background:
+                                                            "rgba(255,255,255,0.7)",
+                                                        borderRadius: "50%",
+                                                    }}
+                                                />
+                                            </Box>
+                                        ))}
+                                </Box>
+                            </Box>
+
+                            <Box direction="row" gap="medium" justify="end">
+                                <Button
+                                    type="button"
+                                    primary
+                                    label="Submit"
+                                    onClick={
+                                        editId ? updateProduct : saveProduct
+                                    }
+                                    disabled={processing}
+                                />
+                                <Button
+                                    type="reset"
+                                    label="Reset"
+                                    onClick={reset}
+                                />
+                            </Box>
+                        </Box>
+                    )}
                     <Box
                         gap={size === "large" ? "medium" : "xxsmall"}
                         pad={
@@ -331,16 +455,50 @@ const Products = (props) => {
                                                                 <Edit color="accent-1" />
                                                             }
                                                             hoverIndicator
-                                                            onClick={() => {
+                                                            onClick={async () => {
+                                                                setLoading(
+                                                                    true
+                                                                );
                                                                 setEditId(
                                                                     datum.id
                                                                 );
+
+                                                                const {
+                                                                    data: {
+                                                                        product:
+                                                                            {
+                                                                                images,
+                                                                            },
+                                                                    },
+                                                                } =
+                                                                    await axios.get(
+                                                                        "/products/" +
+                                                                            datum.id
+                                                                    );
+
+                                                                const oldImages =
+                                                                    images.map(
+                                                                        (
+                                                                            image
+                                                                        ) => ({
+                                                                            is_new: false,
+                                                                            image: null,
+                                                                            path: image.img_path,
+                                                                        })
+                                                                    );
+
                                                                 setData({
                                                                     code: datum.code,
                                                                     name: datum.name,
                                                                     costprice:
                                                                         datum.costprice,
+                                                                    per_pack:
+                                                                        datum.per_pack,
+                                                                    images: oldImages,
                                                                 });
+                                                                setLoading(
+                                                                    false
+                                                                );
                                                             }}
                                                         />
                                                     )}
