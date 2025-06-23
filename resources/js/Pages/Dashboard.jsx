@@ -113,6 +113,7 @@ const Dashboard = (props) => {
             <MyHeader
                 role={props.auth.user.role}
                 onHeightChange={setHeaderHeight}
+                name={props.auth.user.name}
             />
             {headerHeight > 0 && (
                 <Box

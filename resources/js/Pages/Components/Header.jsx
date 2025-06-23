@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { Anchor, Box, Header, Heading, Nav } from "grommet";
+import { Anchor, Box, Header, Heading, Menu, Nav, Text } from "grommet";
 import {
     Shop,
     Dashboard,
@@ -9,10 +9,11 @@ import {
     Clipboard,
     UserManager,
     Nodes,
+    User,
 } from "grommet-icons";
 import { useEffect, useRef } from "react";
 
-const MyHeader = ({ onHeightChange, role }) => {
+const MyHeader = ({ onHeightChange, role, name = "Yaseen" }) => {
     const headerRef = useRef();
 
     useEffect(() => {
@@ -96,13 +97,15 @@ const MyHeader = ({ onHeightChange, role }) => {
                     icon={<Catalog />}
                     hoverIndicator
                 />
-                <Anchor
-                    onClick={() => router.visit("/receipts")}
-                    href="#"
-                    label="Receipt"
-                    icon={<Clipboard />}
-                    hoverIndicator
-                />
+                {role !== "user" && (
+                    <Anchor
+                        onClick={() => router.visit("/receipts")}
+                        href="#"
+                        label="Receipt"
+                        icon={<Clipboard />}
+                        hoverIndicator
+                    />
+                )}
                 <Anchor
                     onClick={() => router.visit("/deliveries")}
                     href="#"
@@ -110,7 +113,26 @@ const MyHeader = ({ onHeightChange, role }) => {
                     icon={<Deliver />}
                     hoverIndicator
                 />
-                <Anchor
+                <Menu
+                    label={<Text color="accent-1">{`Hi, ${name}`}</Text>}
+                    items={[
+                        {
+                            label: "Logout",
+                            onClick: () => {
+                                router.post(
+                                    "/logout",
+                                    {},
+                                    {
+                                        replace: true,
+                                    }
+                                );
+                            },
+                            icon: <Logout />,
+                            gap: "small",
+                        },
+                    ]}
+                />
+                {/* <Anchor
                     onClick={() => {
                         router.post(
                             "/logout",
@@ -124,7 +146,7 @@ const MyHeader = ({ onHeightChange, role }) => {
                     label="Logout"
                     icon={<Logout />}
                     color={"focus"}
-                />
+                /> */}
             </Nav>
         </Header>
     );

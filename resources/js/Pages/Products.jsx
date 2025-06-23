@@ -110,6 +110,7 @@ const Products = (props) => {
             <MyHeader
                 onHeightChange={setHeaderHeight}
                 role={props.auth.user.role}
+                name={props.auth.user.name}
             />
             {headerHeight > 0 && (
                 <Grid
@@ -286,15 +287,17 @@ const Products = (props) => {
                             </Box>
 
                             <Box direction="row" gap="medium" justify="end">
-                                <Button
-                                    type="button"
-                                    primary
-                                    label="Submit"
-                                    onClick={
-                                        editId ? updateProduct : saveProduct
-                                    }
-                                    disabled={processing}
-                                />
+                                {props.auth.user.role !== "user" && (
+                                    <Button
+                                        type="button"
+                                        primary
+                                        label="Submit"
+                                        onClick={
+                                            editId ? updateProduct : saveProduct
+                                        }
+                                        disabled={processing}
+                                    />
+                                )}
                                 <Button
                                     type="reset"
                                     label="Reset"
@@ -448,60 +451,49 @@ const Products = (props) => {
                                                     direction="row"
                                                     gap={"xxsmall"}
                                                 >
-                                                    {props.auth.user.role !==
-                                                        "user" && (
-                                                        <Button
-                                                            icon={
-                                                                <Edit color="accent-1" />
-                                                            }
-                                                            hoverIndicator
-                                                            onClick={async () => {
-                                                                setLoading(
-                                                                    true
-                                                                );
-                                                                setEditId(
-                                                                    datum.id
-                                                                );
+                                                    <Button
+                                                        icon={
+                                                            <Edit color="accent-1" />
+                                                        }
+                                                        hoverIndicator
+                                                        onClick={async () => {
+                                                            setLoading(true);
+                                                            setEditId(datum.id);
 
-                                                                const {
-                                                                    data: {
-                                                                        product:
-                                                                            {
-                                                                                images,
-                                                                            },
+                                                            const {
+                                                                data: {
+                                                                    product: {
+                                                                        images,
                                                                     },
-                                                                } =
-                                                                    await axios.get(
-                                                                        "/products/" +
-                                                                            datum.id
-                                                                    );
+                                                                },
+                                                            } = await axios.get(
+                                                                "/products/" +
+                                                                    datum.id
+                                                            );
 
-                                                                const oldImages =
-                                                                    images.map(
-                                                                        (
-                                                                            image
-                                                                        ) => ({
-                                                                            is_new: false,
-                                                                            image: null,
-                                                                            path: image.img_path,
-                                                                        })
-                                                                    );
-
-                                                                setData({
-                                                                    code: datum.code,
-                                                                    name: datum.name,
-                                                                    costprice:
-                                                                        datum.costprice,
-                                                                    per_pack:
-                                                                        datum.per_pack,
-                                                                    images: oldImages,
-                                                                });
-                                                                setLoading(
-                                                                    false
+                                                            const oldImages =
+                                                                images.map(
+                                                                    (
+                                                                        image
+                                                                    ) => ({
+                                                                        is_new: false,
+                                                                        image: null,
+                                                                        path: image.img_path,
+                                                                    })
                                                                 );
-                                                            }}
-                                                        />
-                                                    )}
+
+                                                            setData({
+                                                                code: datum.code,
+                                                                name: datum.name,
+                                                                costprice:
+                                                                    datum.costprice,
+                                                                per_pack:
+                                                                    datum.per_pack,
+                                                                images: oldImages,
+                                                            });
+                                                            setLoading(false);
+                                                        }}
+                                                    />
                                                     {props.auth.user.role ===
                                                         "admin" && (
                                                         <Button

@@ -131,6 +131,11 @@ const Deliveries = (props) => {
     };
 
     const updateDelivery = () => {
+        if (props.auth.user.role === "user") {
+            setMessage("Cannot update");
+            return;
+        }
+
         if (!data.from) {
             setMessage("Select from station first");
             return;
@@ -223,6 +228,7 @@ const Deliveries = (props) => {
             <MyHeader
                 onHeightChange={setHeaderHeight}
                 role={props.auth.user.role}
+                name={props.auth.user.name}
             />
             {headerHeight > 0 && (
                 <Grid
@@ -568,17 +574,21 @@ const Deliveries = (props) => {
                                     </Table>
                                 </Box>
                                 <Box direction="row" gap="medium" justify="end">
-                                    <Button
-                                        type="button"
-                                        primary
-                                        label="Submit"
-                                        onClick={
-                                            editId
-                                                ? updateDelivery
-                                                : saveDelivery
-                                        }
-                                        disabled={processing}
-                                    />
+                                    {((props.auth.user.role === "user" &&
+                                        !editId) ||
+                                        props.auth.user.role !== "user") && (
+                                        <Button
+                                            type="button"
+                                            primary
+                                            label="Submit"
+                                            onClick={
+                                                editId
+                                                    ? updateDelivery
+                                                    : saveDelivery
+                                            }
+                                            disabled={processing}
+                                        />
+                                    )}
                                     <Button
                                         type="reset"
                                         label="Reset"
@@ -660,70 +670,58 @@ const Deliveries = (props) => {
                                                     direction="row"
                                                     gap={"xxsmall"}
                                                 >
-                                                    {props.auth.user.role !==
-                                                        "user" && (
-                                                        <Button
-                                                            icon={
-                                                                <Edit color="accent-1" />
-                                                            }
-                                                            hoverIndicator
-                                                            onClick={async () => {
-                                                                setLoading(
-                                                                    true
-                                                                );
-                                                                reset();
-                                                                setEditId(
+                                                    <Button
+                                                        icon={
+                                                            <Edit color="accent-1" />
+                                                        }
+                                                        hoverIndicator
+                                                        onClick={async () => {
+                                                            setLoading(true);
+                                                            reset();
+                                                            setEditId(datum.id);
+                                                            let {
+                                                                data: {
+                                                                    from,
+                                                                    to,
+                                                                    items,
+                                                                },
+                                                            } = await axios.get(
+                                                                "/deliveries/" +
                                                                     datum.id
-                                                                );
-                                                                let {
-                                                                    data: {
-                                                                        from,
-                                                                        to,
-                                                                        items,
-                                                                    },
-                                                                } =
-                                                                    await axios.get(
-                                                                        "/deliveries/" +
-                                                                            datum.id
-                                                                    );
+                                                            );
 
-                                                                setSelectedFromStation(
-                                                                    {
-                                                                        id: from.id.toString(),
-                                                                        name: from.name,
-                                                                    }
-                                                                );
+                                                            setSelectedFromStation(
+                                                                {
+                                                                    id: from.id.toString(),
+                                                                    name: from.name,
+                                                                }
+                                                            );
 
-                                                                setSelectedToStation(
-                                                                    {
-                                                                        id: to.id.toString(),
-                                                                        name: to.name,
-                                                                    }
-                                                                );
+                                                            setSelectedToStation(
+                                                                {
+                                                                    id: to.id.toString(),
+                                                                    name: to.name,
+                                                                }
+                                                            );
 
-                                                                items.forEach(
-                                                                    (item) => {
-                                                                        dispatch(
+                                                            items.forEach(
+                                                                (item) => {
+                                                                    dispatch({
+                                                                        type: "add",
+                                                                        payload:
                                                                             {
-                                                                                type: "add",
-                                                                                payload:
-                                                                                    {
-                                                                                        id: item.product_id,
-                                                                                        name: item
-                                                                                            .product
-                                                                                            .name,
-                                                                                        qty: item.qty,
-                                                                                    },
-                                                                            }
-                                                                        );
-                                                                    }
-                                                                );
-                                                                setLoading(
-                                                                    false
-                                                                );
-                                                            }}
-                                                        />
-                                                    )}
+                                                                                id: item.product_id,
+                                                                                name: item
+                                                                                    .product
+                                                                                    .name,
+                                                                                qty: item.qty,
+                                                                            },
+                                                                    });
+                                                                }
+                                                            );
+                                                            setLoading(false);
+                                                        }}
+                                                    />
                                                     {props.auth.user.role ===
                                                         "admin" && (
                                                         <Button

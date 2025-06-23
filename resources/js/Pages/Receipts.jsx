@@ -192,6 +192,7 @@ const Receipts = (props) => {
             <MyHeader
                 onHeightChange={setHeaderHeight}
                 role={props.auth.user.role}
+                name={props.auth.user.name}
             />
             {headerHeight > 0 && (
                 <Grid
