@@ -70,8 +70,8 @@ const Dashboard = (props) => {
                 (+e.from * +e.cost_price).toFixed(2),
                 (+e.to).toFixed(0),
                 (+e.to * +e.cost_price).toFixed(2),
-                (+e.from - +e.to).toFixed(0),
-                ((+e.from - +e.to) * +e.cost_price).toFixed(2),
+                (+e.delivery).toFixed(0),
+                (+e.delivery * +e.cost_price).toFixed(2),
             ]);
 
             // Footer totals
@@ -81,8 +81,8 @@ const Dashboard = (props) => {
                     acc[1] += +curr.from * +curr.cost_price;
                     acc[2] += +curr.to;
                     acc[3] += +curr.to * +curr.cost_price;
-                    acc[4] += +curr.from - +curr.to;
-                    acc[5] += (+curr.from - +curr.to) * +curr.cost_price;
+                    acc[4] += +curr.delivery;
+                    acc[5] += +curr.delivery * +curr.cost_price;
                     return acc;
                 },
                 [0, 0, 0, 0, 0, 0]
@@ -372,10 +372,7 @@ const Dashboard = (props) => {
                                                                         color="light-1"
                                                                         size="xsmall"
                                                                     >
-                                                                        {(
-                                                                            +e.from -
-                                                                            +e.to
-                                                                        ).toFixed(
+                                                                        {(+e.delivery).toFixed(
                                                                             0
                                                                         )}
                                                                     </Text>
@@ -386,8 +383,7 @@ const Dashboard = (props) => {
                                                                         size="xsmall"
                                                                     >
                                                                         {(
-                                                                            (+e.from -
-                                                                                +e.to) *
+                                                                            +e.delivery *
                                                                             +e.cost_price
                                                                         ).toFixed(
                                                                             2
@@ -530,8 +526,7 @@ const Dashboard = (props) => {
                                                                         curr
                                                                     ) =>
                                                                         acc +
-                                                                        (+curr.from -
-                                                                            +curr.to),
+                                                                        +curr.delivery,
                                                                     0
                                                                 )
                                                                 .toFixed(0)}
@@ -557,8 +552,7 @@ const Dashboard = (props) => {
                                                                         curr
                                                                     ) =>
                                                                         acc +
-                                                                        (+curr.from -
-                                                                            +curr.to) *
+                                                                        +curr.delivery *
                                                                             +curr.cost_price,
                                                                     0
                                                                 )
