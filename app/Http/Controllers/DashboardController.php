@@ -32,7 +32,7 @@ class DashboardController extends Controller
 
 
         $stock = DB::table("stations", "s")
-            ->where('s.type', 'floor')
+            // ->where('s.type', 'floor')
             ->crossJoin('products as p')
             ->leftJoinSub($fromDateStockSub, 'from_stock', function ($join) {
                 $join->on('from_stock.station_id', '=', 's.id')
@@ -56,8 +56,8 @@ class DashboardController extends Controller
             ])
             ->orderBy('s.id');
 
-        $sql = $stock->toSql();
-        Log::info($sql);
+        // $sql = $stock->toSql();
+        // Log::info($sql);
 
         return inertia('Dashboard', [
             'stock' => fn() => $stock->get()
