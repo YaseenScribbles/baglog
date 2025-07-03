@@ -152,6 +152,7 @@ const Dashboard = (props) => {
                                         }));
                                     }}
                                     size="small"
+                                    inputProps={{ readOnly: true }}
                                 />
                                 <DateInput
                                     format="dd/mm/yyyy"
@@ -172,6 +173,7 @@ const Dashboard = (props) => {
                                             right: "right",
                                         },
                                     }}
+                                    inputProps={{ readOnly: true }}
                                 />
                                 <Button
                                     primary
