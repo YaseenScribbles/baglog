@@ -4,6 +4,7 @@ import {
     DateInput,
     Grid,
     Heading,
+    ResponsiveContext,
     Spinner,
     Table,
     TableBody,
@@ -14,10 +15,10 @@ import {
     Text,
 } from "grommet";
 import MyHeader from "./Components/Header";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useForm } from "@inertiajs/react";
 import { format, startOfMonth } from "date-fns";
-import { Nodes, Search, Download } from "grommet-icons";
+import { Search, Download } from "grommet-icons";
 import * as XLSX from "xlsx";
 
 const Dashboard = (props) => {
@@ -28,6 +29,7 @@ const Dashboard = (props) => {
         to_date: format(new Date(), "yyyy-MM-dd"),
     });
     const [headerHeight, setHeaderHeight] = useState(0);
+    const size = useContext(ResponsiveContext);
 
     useEffect(() => {
         if (props.stock) {
@@ -58,6 +60,8 @@ const Dashboard = (props) => {
                 "Prev. Value",
                 "Del. Qty",
                 "Del. Value",
+                "Rec. Qty",
+                "Rec. Value",
                 "Curr. Qty",
                 "Curr. Value",
             ];
@@ -70,6 +74,8 @@ const Dashboard = (props) => {
                 (+e.from * +e.cost_price).toFixed(2),
                 (+e.delivery).toFixed(0),
                 (+e.delivery * +e.cost_price).toFixed(2),
+                (+e.receipt).toFixed(0),
+                (+e.receipt * +e.cost_price).toFixed(2),
                 (+e.to).toFixed(0),
                 (+e.to * +e.cost_price).toFixed(2),
             ]);
@@ -81,11 +87,13 @@ const Dashboard = (props) => {
                     acc[1] += +curr.from * +curr.cost_price;
                     acc[2] += +curr.delivery;
                     acc[3] += +curr.delivery * +curr.cost_price;
-                    acc[4] += +curr.to;
-                    acc[5] += +curr.to * +curr.cost_price;
+                    acc[4] += +curr.receipt;
+                    acc[5] += +curr.receipt * +curr.cost_price;
+                    acc[6] += +curr.to;
+                    acc[7] += +curr.to * +curr.cost_price;
                     return acc;
                 },
-                [0, 0, 0, 0, 0, 0]
+                [0, 0, 0, 0, 0, 0, 0, 0]
             );
 
             const footerRow = [
@@ -96,6 +104,8 @@ const Dashboard = (props) => {
                 totals[3].toFixed(2),
                 totals[4].toFixed(0),
                 totals[5].toFixed(2),
+                totals[6].toFixed(0),
+                totals[7].toFixed(2),
             ];
 
             const sheetData = [headers, ...rows, footerRow];
@@ -123,7 +133,7 @@ const Dashboard = (props) => {
                     <Grid
                         gap={"small"}
                         rows={["70px", "auto"]}
-                        columns={"45%"}
+                        columns={size === "large" ? "45%" : ""}
                         pad={"small"}
                     >
                         <Box
@@ -288,6 +298,28 @@ const Dashboard = (props) => {
                                                                     "serif",
                                                             }}
                                                         >
+                                                            Rec. Qty
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            Rec. Value
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
                                                             Curr. Qty
                                                         </Text>
                                                     </TableCell>
@@ -319,7 +351,7 @@ const Dashboard = (props) => {
                                                                 <TableCell>
                                                                     <Text
                                                                         color="light-1"
-                                                                        size="xsmall"
+                                                                        size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {e.product.toUpperCase()}
                                                                     </Text>
@@ -327,7 +359,7 @@ const Dashboard = (props) => {
                                                                 <TableCell align="right">
                                                                     <Text
                                                                         color="light-1"
-                                                                        size="xsmall"
+                                                                        size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(+e.from).toFixed(
                                                                             0
@@ -337,7 +369,7 @@ const Dashboard = (props) => {
                                                                 <TableCell align="right">
                                                                     <Text
                                                                         color="light-1"
-                                                                        size="xsmall"
+                                                                        size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(
                                                                             +e.from *
@@ -350,7 +382,7 @@ const Dashboard = (props) => {
                                                                 <TableCell align="right">
                                                                     <Text
                                                                         color="light-1"
-                                                                        size="xsmall"
+                                                                        size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(+e.delivery).toFixed(
                                                                             0
@@ -360,7 +392,7 @@ const Dashboard = (props) => {
                                                                 <TableCell align="right">
                                                                     <Text
                                                                         color="light-1"
-                                                                        size="xsmall"
+                                                                        size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(
                                                                             +e.delivery *
@@ -373,7 +405,30 @@ const Dashboard = (props) => {
                                                                 <TableCell align="right">
                                                                     <Text
                                                                         color="light-1"
-                                                                        size="xsmall"
+                                                                        size={size === "large" ? "xsmall" : "small"}
+                                                                    >
+                                                                        {(+e.receipt).toFixed(
+                                                                            0
+                                                                        )}
+                                                                    </Text>
+                                                                </TableCell>
+                                                                <TableCell align="right">
+                                                                    <Text
+                                                                        color="light-1"
+                                                                        size={size === "large" ? "xsmall" : "small"}
+                                                                    >
+                                                                        {(
+                                                                            +e.receipt *
+                                                                            +e.cost_price
+                                                                        ).toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </Text>
+                                                                </TableCell>
+                                                                <TableCell align="right">
+                                                                    <Text
+                                                                        color="light-1"
+                                                                        size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(+e.to).toFixed(
                                                                             0
@@ -383,7 +438,7 @@ const Dashboard = (props) => {
                                                                 <TableCell align="right">
                                                                     <Text
                                                                         color="light-1"
-                                                                        size="xsmall"
+                                                                        size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(
                                                                             +e.to *
@@ -503,6 +558,59 @@ const Dashboard = (props) => {
                                                                     ) =>
                                                                         acc +
                                                                         +curr.delivery *
+                                                                            +curr.cost_price,
+                                                                    0
+                                                                )
+                                                                .toFixed(2)}
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            {stock
+                                                                .filter(
+                                                                    (s) =>
+                                                                        s.station ==
+                                                                        station
+                                                                )
+                                                                .reduce(
+                                                                    (
+                                                                        acc,
+                                                                        curr
+                                                                    ) =>
+                                                                        acc +
+                                                                        +curr.receipt,
+                                                                    0
+                                                                )
+                                                                .toFixed(0)}
+                                                        </Text>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Text
+                                                            color="light-1"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "serif",
+                                                            }}
+                                                        >
+                                                            {stock
+                                                                .filter(
+                                                                    (s) =>
+                                                                        s.station ==
+                                                                        station
+                                                                )
+                                                                .reduce(
+                                                                    (
+                                                                        acc,
+                                                                        curr
+                                                                    ) =>
+                                                                        acc +
+                                                                        +curr.receipt *
                                                                             +curr.cost_price,
                                                                     0
                                                                 )
