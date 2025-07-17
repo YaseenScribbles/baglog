@@ -8,8 +8,20 @@
     }
 }
 
-.fSuosw:not(:first-of-type), .fSuosw button {
+/* .fSuosw:not(:first-of-type), .fSuosw button {
     display: none !important;
+} */
+
+.product-image ~ .fSuosw:not(:first-of-type),
+.product-image ~ .fSuosw button {
+    display: none !important;
+}
+
+.file-input + div span {
+    color: #aaaaaa;
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 500;
 }
 
 /* .gVyYwV, .cgiLzR {

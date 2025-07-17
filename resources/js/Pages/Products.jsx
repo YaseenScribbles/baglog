@@ -229,6 +229,7 @@ const Products = (props) => {
                                         }));
                                     }}
                                     multiple
+                                    className="product-image"
                                 />
 
                                 <Box direction="row" wrap>
@@ -501,11 +502,17 @@ const Products = (props) => {
                                                                 <Trash color="accent-1" />
                                                             }
                                                             hoverIndicator
-                                                            onClick={() =>
-                                                                deleteProduct(
-                                                                    datum.id
-                                                                )
-                                                            }
+                                                            onClick={() => {
+                                                                if (
+                                                                    window.confirm(
+                                                                        "Are you sure?"
+                                                                    )
+                                                                ) {
+                                                                    deleteProduct(
+                                                                        datum.id
+                                                                    );
+                                                                }
+                                                            }}
                                                         />
                                                     )}
                                                 </Box>

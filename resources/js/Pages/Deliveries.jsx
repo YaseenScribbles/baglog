@@ -21,10 +21,11 @@ import {
     DataTable,
     Data,
     Toolbar,
+    Collapsible,
 } from "grommet";
 import MyHeader from "./Components/Header";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
-import { Trash, Shop, Add, Edit, Download } from "grommet-icons";
+import { Trash, Shop, Add, Edit, Download, FormSubtract } from "grommet-icons";
 import axios from "axios";
 import { format } from "date-fns";
 import { excelExport } from "./Common/common";
@@ -75,6 +76,7 @@ const Deliveries = (props) => {
     const size = useContext(ResponsiveContext);
     const [loading, setLoading] = useState(false);
     const [currentStock, setCurrentStock] = useState(0);
+    const [showForm, setShowForm] = useState(false);
 
     const reset = () => {
         setData({
@@ -232,313 +234,252 @@ const Deliveries = (props) => {
             />
             {headerHeight > 0 && (
                 <Grid
-                    columns={["1/3", "2/3"]}
+                    columns={showForm ? ["1/3", "2/3"] : []}
                     style={{ height: `calc(100% - ${headerHeight}px)` }}
                 >
-                    <Box
-                        gap={size === "large" ? "medium" : "xxsmall"}
-                        border={{ side: "right" }}
-                        pad={size === "large" ? "medium" : "small"}
-                    >
-                        {loading ? (
-                            <Box
-                                width={"100%"}
-                                height={"100%"}
-                                align="center"
-                                justify="center"
-                            >
-                                <Spinner color={"accent-1"} />
-                            </Box>
-                        ) : (
-                            <>
-                                <Heading
-                                    level={3}
-                                    margin={{ vertical: "small" }}
+                    <Collapsible open={showForm} direction="horizontal">
+                        <Box
+                            gap={size === "large" ? "medium" : "xxsmall"}
+                            border={{ side: "right" }}
+                            pad={size === "large" ? "medium" : "small"}
+                            height={"100%"}
+                        >
+                            {loading ? (
+                                <Box
+                                    width={"100%"}
+                                    height={"100%"}
+                                    align="center"
+                                    justify="center"
                                 >
-                                    {editId
-                                        ? "Update Delivery"
-                                        : "Create Delivery"}
-                                </Heading>
-                                <Box direction="row" gap={"small"}>
-                                    <Box basis="40%">
-                                        <FormField
-                                            name="from_station_id"
-                                            htmlFor="from_station_id"
-                                            label="From"
-                                        >
-                                            <Select
-                                                id="from_station_id"
+                                    <Spinner color={"accent-1"} />
+                                </Box>
+                            ) : (
+                                <>
+                                    <Heading
+                                        level={3}
+                                        margin={{ vertical: "small" }}
+                                    >
+                                        {editId
+                                            ? "Update Delivery"
+                                            : "Create Delivery"}
+                                    </Heading>
+                                    <Box direction="row" gap={"small"}>
+                                        <Box basis="40%">
+                                            <FormField
                                                 name="from_station_id"
-                                                options={stations}
-                                                labelKey={"name"}
-                                                valueKey={{
-                                                    key: "id",
-                                                    reduce: true,
-                                                }}
-                                                value={
-                                                    selectedFromStation?.id ||
-                                                    ""
-                                                }
-                                                onChange={(e) => {
-                                                    setSelectedFromStation(
-                                                        e.option
-                                                    );
-                                                }}
-                                                size="small"
-                                            />
-                                        </FormField>
+                                                htmlFor="from_station_id"
+                                                label="From"
+                                            >
+                                                <Select
+                                                    id="from_station_id"
+                                                    name="from_station_id"
+                                                    options={stations}
+                                                    labelKey={"name"}
+                                                    valueKey={{
+                                                        key: "id",
+                                                        reduce: true,
+                                                    }}
+                                                    value={
+                                                        selectedFromStation?.id ||
+                                                        ""
+                                                    }
+                                                    onChange={(e) => {
+                                                        setSelectedFromStation(
+                                                            e.option
+                                                        );
+                                                    }}
+                                                    size="small"
+                                                />
+                                            </FormField>
+                                        </Box>
+                                        <Box basis="40%">
+                                            <FormField
+                                                name="to_station_id"
+                                                htmlFor="to_station_id"
+                                                label="To"
+                                            >
+                                                <Select
+                                                    id="to_station_id"
+                                                    name="to_station_id"
+                                                    options={stations}
+                                                    labelKey={"name"}
+                                                    valueKey={{
+                                                        key: "id",
+                                                        reduce: true,
+                                                    }}
+                                                    value={
+                                                        selectedToStation?.id ||
+                                                        ""
+                                                    }
+                                                    onChange={(e) => {
+                                                        setSelectedToStation(
+                                                            e.option
+                                                        );
+                                                    }}
+                                                    size="small"
+                                                />
+                                            </FormField>
+                                        </Box>
+                                        <Box basis="20%">
+                                            <FormField
+                                                name="ref_no"
+                                                htmlFor="ref_no"
+                                                label="Ref No"
+                                            >
+                                                <TextInput
+                                                    id="ref_no"
+                                                    name="ref_no"
+                                                    value={data.ref_no}
+                                                    onChange={(e) =>
+                                                        setData((prev) => ({
+                                                            ...prev,
+                                                            ref_no: e.target
+                                                                .value,
+                                                        }))
+                                                    }
+                                                    size="small"
+                                                />
+                                            </FormField>
+                                        </Box>
                                     </Box>
-                                    <Box basis="40%">
+                                    <Box
+                                        direction="row"
+                                        gap={"small"}
+                                        border={{
+                                            side: "bottom",
+                                            color: "accent-1",
+                                        }}
+                                        pad={{ bottom: "medium" }}
+                                        margin={{ bottom: "xsmall" }}
+                                    >
                                         <FormField
-                                            name="to_station_id"
-                                            htmlFor="to_station_id"
-                                            label="To"
+                                            name="product_id"
+                                            htmlFor="product_id"
+                                            label="Product"
+                                            style={{ flexBasis: "80%" }}
                                         >
                                             <Select
-                                                id="to_station_id"
-                                                name="to_station_id"
-                                                options={stations}
+                                                id="product_id"
+                                                name="product_id"
+                                                options={products}
                                                 labelKey={"name"}
-                                                valueKey={{
-                                                    key: "id",
-                                                    reduce: true,
-                                                }}
-                                                value={
-                                                    selectedToStation?.id || ""
-                                                }
+                                                valueKey={"id"}
+                                                value={selectedProduct}
                                                 onChange={(e) => {
-                                                    setSelectedToStation(
-                                                        e.option
+                                                    setSelectedProduct(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            id: e.value.id,
+                                                            name: e.value.name,
+                                                        })
                                                     );
                                                 }}
                                                 size="small"
+                                                ref={productRef}
+                                                disabled={data.from === ""}
                                             />
                                         </FormField>
-                                    </Box>
-                                    <Box basis="20%">
                                         <FormField
-                                            name="ref_no"
-                                            htmlFor="ref_no"
-                                            label="Ref No"
+                                            name="qty"
+                                            htmlFor="qty"
+                                            label={`Qty(${currentStock})`}
                                         >
                                             <TextInput
-                                                id="ref_no"
-                                                name="ref_no"
-                                                value={data.ref_no}
-                                                onChange={(e) =>
-                                                    setData((prev) => ({
-                                                        ...prev,
-                                                        ref_no: e.target.value,
-                                                    }))
-                                                }
+                                                id="qty"
+                                                name="qty"
+                                                value={selectedProduct.qty}
+                                                onChange={(e) => {
+                                                    const qty = e.target.value;
+                                                    if (isNaN(qty)) return;
+                                                    setSelectedProduct(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            qty: e.target.value,
+                                                        })
+                                                    );
+                                                }}
                                                 size="small"
+                                                disabled={data.from === ""}
                                             />
                                         </FormField>
+                                        <Button
+                                            disabled={data.from === ""}
+                                            type="button"
+                                            icon={<Add />}
+                                            onClick={() => {
+                                                if (!selectedProduct.id) {
+                                                    setMessage(
+                                                        "Select product first"
+                                                    );
+                                                    return;
+                                                }
+                                                if (!selectedProduct.qty) {
+                                                    setMessage("Enter Qty");
+                                                    return;
+                                                }
+
+                                                const enteredQty =
+                                                    +selectedProduct.qty;
+
+                                                const index = items.findIndex(
+                                                    (item) =>
+                                                        item.id ===
+                                                        selectedProduct.id
+                                                );
+
+                                                const totalQtyInItems =
+                                                    +items[index]?.qty || 0;
+
+                                                if (
+                                                    enteredQty +
+                                                        totalQtyInItems >
+                                                    currentStock
+                                                ) {
+                                                    setMessage(
+                                                        "Stock not available"
+                                                    );
+                                                    return;
+                                                }
+
+                                                if (index === -1) {
+                                                    dispatch({
+                                                        type: "add",
+                                                        payload:
+                                                            selectedProduct,
+                                                    });
+                                                } else {
+                                                    dispatch({
+                                                        type: "updateQty",
+                                                        payload: {
+                                                            index,
+                                                            qty: selectedProduct.qty,
+                                                        },
+                                                    });
+                                                }
+
+                                                setSelectedProduct({
+                                                    id: "",
+                                                    name: "",
+                                                    qty: "",
+                                                });
+                                                setCurrentStock(0);
+                                                productRef.current.focus();
+                                            }}
+                                        />
                                     </Box>
-                                </Box>
-                                <Box
-                                    direction="row"
-                                    gap={"small"}
-                                    border={{
-                                        side: "bottom",
-                                        color: "accent-1",
-                                    }}
-                                    pad={{ bottom: "medium" }}
-                                    margin={{ bottom: "xsmall" }}
-                                >
-                                    <FormField
-                                        name="product_id"
-                                        htmlFor="product_id"
-                                        label="Product"
-                                        style={{ flexBasis: "80%" }}
+                                    <Box
+                                        overflow={{ vertical: "auto" }}
+                                        margin={{ bottom: "small" }}
+                                        height={
+                                            size === "large" ? "60%" : "50%"
+                                        }
+                                        flex="grow"
                                     >
-                                        <Select
-                                            id="product_id"
-                                            name="product_id"
-                                            options={products}
-                                            labelKey={"name"}
-                                            valueKey={"id"}
-                                            value={selectedProduct}
-                                            onChange={(e) => {
-                                                setSelectedProduct((prev) => ({
-                                                    ...prev,
-                                                    id: e.value.id,
-                                                    name: e.value.name,
-                                                }));
-                                            }}
-                                            size="small"
-                                            ref={productRef}
-                                            disabled={data.from === ""}
-                                        />
-                                    </FormField>
-                                    <FormField
-                                        name="qty"
-                                        htmlFor="qty"
-                                        label={`Qty(${currentStock})`}
-                                    >
-                                        <TextInput
-                                            id="qty"
-                                            name="qty"
-                                            value={selectedProduct.qty}
-                                            onChange={(e) => {
-                                                const qty = e.target.value;
-                                                if (isNaN(qty)) return;
-                                                setSelectedProduct((prev) => ({
-                                                    ...prev,
-                                                    qty: e.target.value,
-                                                }));
-                                            }}
-                                            size="small"
-                                            disabled={data.from === ""}
-                                        />
-                                    </FormField>
-                                    <Button
-                                        disabled={data.from === ""}
-                                        type="button"
-                                        icon={<Add />}
-                                        onClick={() => {
-                                            if (!selectedProduct.id) {
-                                                setMessage(
-                                                    "Select product first"
-                                                );
-                                                return;
-                                            }
-                                            if (!selectedProduct.qty) {
-                                                setMessage("Enter Qty");
-                                                return;
-                                            }
-
-                                            const enteredQty =
-                                                +selectedProduct.qty;
-
-                                            const index = items.findIndex(
-                                                (item) =>
-                                                    item.id ===
-                                                    selectedProduct.id
-                                            );
-
-                                            const totalQtyInItems =
-                                                +items[index]?.qty || 0;
-
-                                            if (
-                                                enteredQty + totalQtyInItems >
-                                                currentStock
-                                            ) {
-                                                setMessage(
-                                                    "Stock not available"
-                                                );
-                                                return;
-                                            }
-
-                                            if (index === -1) {
-                                                dispatch({
-                                                    type: "add",
-                                                    payload: selectedProduct,
-                                                });
-                                            } else {
-                                                dispatch({
-                                                    type: "updateQty",
-                                                    payload: {
-                                                        index,
-                                                        qty: selectedProduct.qty,
-                                                    },
-                                                });
-                                            }
-
-                                            setSelectedProduct({
-                                                id: "",
-                                                name: "",
-                                                qty: "",
-                                            });
-                                            setCurrentStock(0);
-                                            productRef.current.focus();
-                                        }}
-                                    />
-                                </Box>
-                                <Box
-                                    overflow={{ vertical: "auto" }}
-                                    margin={{ bottom: "small" }}
-                                    height={size === "large" ? "60%" : "50%"}
-                                    flex="grow"
-                                >
-                                    <Table>
-                                        <TableHeader
-                                            style={{
-                                                position: "sticky",
-                                                top: "0",
-                                                backgroundColor: "#000",
-                                                zIndex: "1",
-                                            }}
-                                        >
-                                            <TableRow>
-                                                <TableCell
-                                                    scope="col"
-                                                    border="bottom"
-                                                >
-                                                    <strong>Name</strong>
-                                                </TableCell>
-                                                <TableCell
-                                                    scope="col"
-                                                    border="bottom"
-                                                >
-                                                    <strong>Qty</strong>
-                                                </TableCell>
-                                                <TableCell
-                                                    scope="col"
-                                                    border="bottom"
-                                                >
-                                                    <strong>Actions</strong>
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {items.length === 0 ? (
-                                                <TableRow>
-                                                    <TableCell
-                                                        scope="row"
-                                                        colSpan={3}
-                                                        align="center"
-                                                    >
-                                                        <Text color={"dark-6"}>
-                                                            No Data
-                                                        </Text>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ) : (
-                                                items.map((item) => (
-                                                    <TableRow key={item.id}>
-                                                        <TableCell scope="row">
-                                                            {item.name}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {(+item.qty).toFixed(
-                                                                0
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Button
-                                                                pad={"small"}
-                                                                icon={
-                                                                    <Trash color="accent-1" />
-                                                                }
-                                                                onClick={() => {
-                                                                    dispatch({
-                                                                        type: "remove",
-                                                                        payload:
-                                                                            item.id,
-                                                                    });
-                                                                }}
-                                                            />
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
-                                            )}
-                                        </TableBody>
-                                        {items.length > 0 && (
-                                            <TableFooter
+                                        <Table>
+                                            <TableHeader
                                                 style={{
                                                     position: "sticky",
-                                                    bottom: "0",
+                                                    top: "0",
                                                     backgroundColor: "#000",
                                                     zIndex: "1",
                                                 }}
@@ -546,77 +487,191 @@ const Deliveries = (props) => {
                                                 <TableRow>
                                                     <TableCell
                                                         scope="col"
-                                                        border={{
-                                                            side: "horizontal",
-                                                        }}
-                                                    ></TableCell>
-                                                    <TableCell
-                                                        scope="col"
-                                                        border={{
-                                                            side: "horizontal",
-                                                        }}
+                                                        border="bottom"
                                                     >
-                                                        <strong>
-                                                            {(+data.total_qty).toFixed(
-                                                                0
-                                                            )}
-                                                        </strong>
+                                                        <strong>Name</strong>
                                                     </TableCell>
                                                     <TableCell
                                                         scope="col"
-                                                        border={{
-                                                            side: "horizontal",
-                                                        }}
-                                                    ></TableCell>
+                                                        border="bottom"
+                                                    >
+                                                        <strong>Qty</strong>
+                                                    </TableCell>
+                                                    <TableCell
+                                                        scope="col"
+                                                        border="bottom"
+                                                    >
+                                                        <strong>Actions</strong>
+                                                    </TableCell>
                                                 </TableRow>
-                                            </TableFooter>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {items.length === 0 ? (
+                                                    <TableRow>
+                                                        <TableCell
+                                                            scope="row"
+                                                            colSpan={3}
+                                                            align="center"
+                                                        >
+                                                            <Text
+                                                                color={"dark-6"}
+                                                            >
+                                                                No Data
+                                                            </Text>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : (
+                                                    items.map((item) => (
+                                                        <TableRow key={item.id}>
+                                                            <TableCell scope="row">
+                                                                {item.name}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {(+item.qty).toFixed(
+                                                                    0
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Button
+                                                                    pad={
+                                                                        "small"
+                                                                    }
+                                                                    icon={
+                                                                        <Trash color="accent-1" />
+                                                                    }
+                                                                    onClick={() => {
+                                                                        dispatch(
+                                                                            {
+                                                                                type: "remove",
+                                                                                payload:
+                                                                                    item.id,
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                )}
+                                            </TableBody>
+                                            {items.length > 0 && (
+                                                <TableFooter
+                                                    style={{
+                                                        position: "sticky",
+                                                        bottom: "0",
+                                                        backgroundColor: "#000",
+                                                        zIndex: "1",
+                                                    }}
+                                                >
+                                                    <TableRow>
+                                                        <TableCell
+                                                            scope="col"
+                                                            border={{
+                                                                side: "horizontal",
+                                                            }}
+                                                        ></TableCell>
+                                                        <TableCell
+                                                            scope="col"
+                                                            border={{
+                                                                side: "horizontal",
+                                                            }}
+                                                        >
+                                                            <strong>
+                                                                {(+data.total_qty).toFixed(
+                                                                    0
+                                                                )}
+                                                            </strong>
+                                                        </TableCell>
+                                                        <TableCell
+                                                            scope="col"
+                                                            border={{
+                                                                side: "horizontal",
+                                                            }}
+                                                        ></TableCell>
+                                                    </TableRow>
+                                                </TableFooter>
+                                            )}
+                                        </Table>
+                                    </Box>
+                                    <Box
+                                        direction="row"
+                                        gap="medium"
+                                        justify="end"
+                                    >
+                                        {((props.auth.user.role === "user" &&
+                                            !editId) ||
+                                            props.auth.user.role !==
+                                                "user") && (
+                                            <Button
+                                                type="button"
+                                                primary
+                                                label="Submit"
+                                                onClick={
+                                                    editId
+                                                        ? updateDelivery
+                                                        : saveDelivery
+                                                }
+                                                disabled={processing}
+                                            />
                                         )}
-                                    </Table>
-                                </Box>
-                                <Box direction="row" gap="medium" justify="end">
-                                    {((props.auth.user.role === "user" &&
-                                        !editId) ||
-                                        props.auth.user.role !== "user") && (
                                         <Button
-                                            type="button"
-                                            primary
-                                            label="Submit"
-                                            onClick={
-                                                editId
-                                                    ? updateDelivery
-                                                    : saveDelivery
-                                            }
-                                            disabled={processing}
+                                            type="reset"
+                                            label="Reset"
+                                            onClick={reset}
                                         />
-                                    )}
-                                    <Button
-                                        type="reset"
-                                        label="Reset"
-                                        onClick={reset}
-                                    />
-                                </Box>
-                            </>
-                        )}
-                    </Box>
+                                    </Box>
+                                </>
+                            )}
+                        </Box>
+                    </Collapsible>
                     <Box
                         gap={"small"}
                         pad={size === "large" ? "medium" : "small"}
                     >
                         <Box direction="row" justify="between" align="center">
-                            <Heading level={3} margin={{ vertical: "small" }}>
-                                Deliveries
-                            </Heading>
-                            <Toolbar>
+                            <Box direction="row" align="center" gap="small">
+                                <Heading
+                                    level={3}
+                                    margin={{ vertical: "small" }}
+                                >
+                                    Deliveries
+                                </Heading>
+                                <Box
+                                    direction="row"
+                                    align="center"
+                                    animation={{
+                                        type: "fadeIn",
+                                        duration: 200,
+                                    }}
+                                >
+                                    <Text size="xlarge">{"["}</Text>
+                                    <Button
+                                        pad="none"
+                                        onClick={() => setShowForm(!showForm)}
+                                        hoverIndicator
+                                        icon={
+                                            showForm ? (
+                                                <FormSubtract color="accent-1" />
+                                            ) : (
+                                                <Add color="accent-1" />
+                                            )
+                                        }
+                                        alignSelf="center"
+                                    />
+                                    <Text size="xlarge">{"]"}</Text>
+                                </Box>
+                            </Box>
+                            <Box direction="row" align="center" gap="small">
                                 <Button
                                     icon={<Download />}
                                     label="Excel"
-                                    onClick={() =>
-                                        excelExport(deliveries, "Deliveries")
-                                    }
+                                    onClick={() => {
+                                        excelExport(deliveries, "Deliveries");
+                                    }}
                                     size="small"
                                     primary
                                 />
-                            </Toolbar>
+                            </Box>
                         </Box>
                         <Box
                             width={"100%"}
@@ -677,6 +732,7 @@ const Deliveries = (props) => {
                                                         hoverIndicator
                                                         onClick={async () => {
                                                             setLoading(true);
+                                                            setShowForm(true)
                                                             reset();
                                                             setEditId(datum.id);
                                                             let {
@@ -729,11 +785,17 @@ const Deliveries = (props) => {
                                                                 <Trash color="accent-1" />
                                                             }
                                                             hoverIndicator
-                                                            onClick={() =>
-                                                                deleteDelivery(
-                                                                    datum.id
-                                                                )
-                                                            }
+                                                            onClick={() => {
+                                                                if (
+                                                                    window.confirm(
+                                                                        "Are you sure?"
+                                                                    )
+                                                                ) {
+                                                                    deleteDelivery(
+                                                                        datum.id
+                                                                    );
+                                                                }
+                                                            }}
                                                         />
                                                     )}
                                                 </Box>

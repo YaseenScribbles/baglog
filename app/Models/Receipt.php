@@ -27,4 +27,9 @@ class Receipt extends Model
     {
         return $this->hasMany(ReceiptItem::class, 'receipt_id');
     }
+
+    public function images()
+    {
+        return $this->hasMany(ReceiptImage::class);
+    }
 }

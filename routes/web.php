@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\UserController;
 use App\Models\StockSummary;
@@ -68,4 +69,9 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
         $stock = StockSummary::where('station_id', $station)->where('product_id', $product)->value('stock');
         return response()->json(['stock' => $stock ?? 0]);
     });
+
+    //Report
+    Route::get('/received', [ReportController::class, 'showReceived']);
+    Route::get('/delivered', [ReportController::class, 'showDelivered']);
+    Route::get('/stock', [ReportController::class, 'showStock']);
 });

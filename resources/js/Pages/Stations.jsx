@@ -229,11 +229,17 @@ const Stations = (props) => {
                                                                     <Trash color="accent-1" />
                                                                 }
                                                                 hoverIndicator
-                                                                onClick={() =>
-                                                                    deleteStation(
-                                                                        station.id
-                                                                    )
-                                                                }
+                                                                onClick={() => {
+                                                                    if (
+                                                                        window.confirm(
+                                                                            "Are you sure?"
+                                                                        )
+                                                                    ) {
+                                                                        deleteStation(
+                                                                            station.id
+                                                                        );
+                                                                    }
+                                                                }}
                                                             />
                                                         )}
                                                     </Box>

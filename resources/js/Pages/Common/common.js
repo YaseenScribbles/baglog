@@ -17,7 +17,7 @@ export const excelExport = (data, name) => {
 
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, name);
+    XLSX.utils.book_append_sheet(workbook, worksheet, name.split(" ")[0]);
 
     XLSX.writeFile(workbook, name + ".xlsx");
 };

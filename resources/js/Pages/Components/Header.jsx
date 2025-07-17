@@ -9,7 +9,7 @@ import {
     Clipboard,
     UserManager,
     Nodes,
-    User,
+    Optimize,
 } from "grommet-icons";
 import { useEffect, useRef } from "react";
 
@@ -116,6 +116,30 @@ const MyHeader = ({ onHeightChange, role, name = "Yaseen" }) => {
                 <Menu
                     label={<Text color="accent-1">{`Hi, ${name}`}</Text>}
                     items={[
+                        {
+                            label: "Received",
+                            onClick: () => {
+                                router.get("/received");
+                            },
+                            icon: <Clipboard />,
+                            gap: "small",
+                        },
+                        {
+                            label: "Delivered",
+                            onClick: () => {
+                                router.get("/delivered");
+                            },
+                            icon: <Deliver />,
+                            gap: "small",
+                        },
+                        {
+                            label: "Stock",
+                            onClick: () => {
+                                router.get("/stock");
+                            },
+                            icon: <Optimize />,
+                            gap: "small",
+                        },
                         {
                             label: "Logout",
                             onClick: () => {

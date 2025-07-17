@@ -153,7 +153,7 @@ const Users = (props) => {
                             <Select
                                 id="role"
                                 name="role"
-                                options={["admin", "manager" ,"user"]}
+                                options={["admin", "manager", "user"]}
                                 value={data.role}
                                 onChange={handleChange}
                             />
@@ -245,11 +245,17 @@ const Users = (props) => {
                                                                 <Trash color="accent-1" />
                                                             }
                                                             hoverIndicator
-                                                            onClick={() =>
-                                                                deleteUser(
-                                                                    user.id
-                                                                )
-                                                            }
+                                                            onClick={() => {
+                                                                if (
+                                                                    window.confirm(
+                                                                        "Are you sure?"
+                                                                    )
+                                                                ) {
+                                                                    deleteUser(
+                                                                        user.id
+                                                                    );
+                                                                }
+                                                            }}
                                                         />
                                                     </Box>
                                                 </TableCell>

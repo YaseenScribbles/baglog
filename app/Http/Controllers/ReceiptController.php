@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Receipt;
+use App\Models\ReceiptImage;
 use App\Models\ReceiptItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ReceiptController extends Controller
 {
@@ -54,12 +56,15 @@ class ReceiptController extends Controller
             'ref_date' => 'required|string',
             'receipt_items' => 'required|array',
             'receipt_items.*.product_id' => 'required|exists:products,id',
-            'receipts_items.*.qty' => 'required|numeric',
+            'receipt_items.*.qty' => 'required|numeric',
+            'receipt_images' => 'nullable|array',
+            'receipt_images.*' => 'nullable|image|mimes:jpg,jpeg,png'
         ]);
 
-        $master = $request->except('receipt_items');
+        $master = $request->except(['receipt_items', 'receipt_images']);
         $master['created_by'] = auth()->user()->id;
         $items = $request->receipt_items;
+        $images = $request->receipt_images;
 
         try {
             //code...
@@ -73,6 +78,21 @@ class ReceiptController extends Controller
                     'qty' => $value['qty'],
                 ]);
             }
+
+            if ($images) {
+                foreach ($images as $image) {
+                    $imagePath = $image->storeAs(
+                        'receipt',
+                        uniqid() . '-' . $image->getClientOriginalName(),
+                        'public'
+                    );
+                    ReceiptImage::create([
+                        'receipt_id' => $receipt->id,
+                        'image_path' => $imagePath
+                    ]);
+                }
+            }
+
             DB::commit();
             return back()->with('message', 'Receipt created successfully');
         } catch (\Throwable $th) {
@@ -87,7 +107,7 @@ class ReceiptController extends Controller
      */
     public function show(Receipt $receipt)
     {
-        $receipt->load(['station', 'items.product']);
+        $receipt->load(['station', 'items.product', 'images']);
         return response()->json($receipt);
     }
 
@@ -111,18 +131,28 @@ class ReceiptController extends Controller
             'ref_date' => 'required|string',
             'receipt_items' => 'required|array',
             'receipt_items.*.product_id' => 'required|exists:products,id',
-            'receipts_items.*.qty' => 'required|numeric',
+            'receipt_items.*.qty' => 'required|numeric',
+            'receipt_images' => 'nullable|array',
+            'receipt_images.*' => 'nullable|image|mimes:jpg,jpeg,png'
         ]);
 
-        $master = $request->except('receipt_items');
+        $master = $request->except(['receipt_items', 'receipt_images']);
         $master['modified_by'] = auth()->user()->id;
         $items = $request->receipt_items;
+        $images = $request->receipt_images;
 
         try {
             //code...
             DB::beginTransaction();
+            $receipt->load('images');
             $receipt->update($master);
             ReceiptItem::where('receipt_id', $receipt->id)->delete();
+            foreach ($receipt->images as $image) {
+                if (Storage::disk('public')->exists($image->image_path)) {
+                    Storage::disk('public')->delete($image->image_path);
+                }
+            }
+            $receipt->images()->delete();
             foreach ($items as $value) {
                 # code...
                 ReceiptItem::create([
@@ -130,6 +160,16 @@ class ReceiptController extends Controller
                     'product_id' => $value['product_id'],
                     'qty' => $value['qty'],
                 ]);
+            }
+
+            if ($images) {
+                foreach ($images as $image) {
+                    $imagePath = $image->storeAs('receipt', uniqid() . '-' . $image->getClientOriginalName(), 'public');
+                    ReceiptImage::create([
+                        'receipt_id' => $receipt->id,
+                        'image_path' => $imagePath,
+                    ]);
+                }
             }
             DB::commit();
             return back()->with('message', 'Receipt updated successfully');
@@ -148,7 +188,14 @@ class ReceiptController extends Controller
         try {
             //code...
             DB::beginTransaction();
+            $receipt->load('images');
             ReceiptItem::where('receipt_id', $receipt->id)->delete();
+            foreach ($receipt->images as $image) {
+                if (Storage::disk('public')->exists($image->image_path)) {
+                    Storage::disk('public')->delete($image->image_path);
+                }
+            }
+            $receipt->images()->delete();
             $receipt->delete();
             DB::commit();
             return back()->with('message', 'Receipt deleted successfully');
