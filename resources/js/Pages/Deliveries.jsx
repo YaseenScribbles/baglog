@@ -471,7 +471,7 @@ const Deliveries = (props) => {
                                         overflow={{ vertical: "auto" }}
                                         margin={{ bottom: "small" }}
                                         height={
-                                            size === "large" ? "60%" : "50%"
+                                            size === "large" ? "55%" : "50%"
                                         }
                                         flex="grow"
                                     >

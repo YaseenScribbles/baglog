@@ -171,14 +171,16 @@ const Receipts = (props) => {
 
     const downloadImages = () => {
         data.receipt_images.forEach((image) => {
-            const downloadLink = document.createElement("a");
-            downloadLink.href = image.image_url;
-            let fileNameWithUniqId = image.image_url.split("/").pop();
-            let fileName = fileNameWithUniqId.split("-").slice(1).join("-");
-            downloadLink.download = fileName;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            if (image.image_url) {
+                const downloadLink = document.createElement("a");
+                downloadLink.href = image.image_url;
+                let fileNameWithUniqId = image.image_url.split("/").pop();
+                let fileName = fileNameWithUniqId.split("-").slice(1).join("-");
+                downloadLink.download = fileName;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            }
         });
     };
 
@@ -476,7 +478,9 @@ const Receipts = (props) => {
                                     <Box
                                         overflow={{ vertical: "auto" }}
                                         margin={{ bottom: "small" }}
-                                        // height={size === "large" ? "60%" : "50%"}
+                                        height={
+                                            size === "large" ? "55%" : "50%"
+                                        }
                                         flex="grow"
                                     >
                                         <Table>
@@ -618,16 +622,17 @@ const Receipts = (props) => {
                                             label="Reset"
                                             onClick={reset}
                                         />
-                                        {data.receipt_images.length > 0 && (
-                                            <Button
-                                                type="button"
-                                                icon={
-                                                    <Download color="accent-1" />
-                                                }
-                                                onClick={downloadImages}
-                                                title="Download Image"
-                                            />
-                                        )}
+                                        {editId &&
+                                            data.receipt_images.length > 0 && data.receipt_images[0].image_url && (
+                                                <Button
+                                                    type="button"
+                                                    icon={
+                                                        <Download color="accent-1" />
+                                                    }
+                                                    onClick={downloadImages}
+                                                    title="Download Image"
+                                                />
+                                            )}
                                     </Box>
                                 </>
                             )}
@@ -923,7 +928,9 @@ const Receipts = (props) => {
                                                                 setLoading(
                                                                     true
                                                                 );
-                                                                setShowForm(true)
+                                                                setShowForm(
+                                                                    true
+                                                                );
                                                                 reset();
                                                                 setEditId(
                                                                     datum.id
