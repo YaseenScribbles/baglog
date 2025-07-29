@@ -19,7 +19,7 @@ class ReceiptController extends Controller
         $receiptsSql = DB::table('receipts', 'r')
             ->join('stations as s', 's.id', '=', 'r.station_id')
             ->join('users as u', 'u.id', '=', 'r.created_by')
-            ->select('r.id', 'r.created_at', 'r.ref_no', 'r.ref_date', DB::raw('s.id as station_id'), 's.name', 'r.total_qty', DB::raw('u.name as created_by'));
+            ->select('r.id', 'r.created_at', 'r.ref_no', 'r.ref_date', DB::raw('s.id as station_id'), 's.name', 'r.total_qty', DB::raw('u.name as created_by'), DB::raw('ROW_NUMBER() OVER(ORDER BY r.id) as s_no'));
 
         $stationsSql = DB::table('stations', 's')
             ->where('s.type', '=', 'floor')

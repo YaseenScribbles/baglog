@@ -18,7 +18,7 @@ class DeliveryController extends Controller
             ->join('stations as s1', 's1.id', '=', 'd.from')
             ->join('stations as s2', 's2.id', '=', 'd.to')
             ->join('users as u', 'u.id', '=', 'd.created_by')
-            ->select('d.id', 'd.created_at', 'd.ref_no', DB::raw('s1.name as [from]'), DB::raw('s2.name as [to]'), 'd.total_qty', DB::raw('u.name as created_by'));
+            ->select('d.id', 'd.created_at', 'd.ref_no', DB::raw('s1.name as [from]'), DB::raw('s2.name as [to]'), 'd.total_qty', DB::raw('u.name as created_by'), DB::raw('ROW_NUMBER () OVER (ORDER BY d.id) as s_no'));
 
         $stationsSql = DB::table('stations', 's')
             ->select('s.id', 's.name');

@@ -871,7 +871,7 @@ const Receipts = (props) => {
                                 <DataTable
                                     columns={[
                                         {
-                                            property: "id",
+                                            property: "s_no",
                                             header: "No",
                                             primary: true,
                                         },
