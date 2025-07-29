@@ -79,6 +79,12 @@ class DashboardController extends Controller
                 DB::raw("coalesce(delivery.qty,0) as [delivery]"),
                 DB::raw("coalesce(receipt.qty,0) as [receipt]")
             ])
+            ->where(function ($query) {
+                $query->whereRaw("coalesce(from_stock.stock, 0) != 0")
+                    ->orWhereRaw("coalesce(to_stock.stock, 0) != 0")
+                    ->orWhereRaw("coalesce(delivery.qty, 0) != 0")
+                    ->orWhereRaw("coalesce(receipt.qty, 0) != 0");
+            })
             ->orderBy('s.id');
 
         // $sql = $stock->toSql();

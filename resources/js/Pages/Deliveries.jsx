@@ -726,6 +726,7 @@ const Deliveries = (props) => {
                                                     gap={"xxsmall"}
                                                 >
                                                     <Button
+                                                        disabled={loading}
                                                         icon={
                                                             <Edit color="accent-1" />
                                                         }
