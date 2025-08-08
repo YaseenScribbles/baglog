@@ -237,7 +237,7 @@ const Deliveries = (props) => {
                     columns={showForm ? ["1/3", "2/3"] : []}
                     style={{ height: `calc(100% - ${headerHeight}px)` }}
                 >
-                    <Collapsible open={showForm} direction="horizontal">
+                    <Collapsible open={showForm}>
                         <Box
                             gap={size === "large" ? "medium" : "xxsmall"}
                             border={{ side: "right" }}

@@ -11,6 +11,18 @@ class DashboardController extends Controller
 {
     public function show(Request $request)
     {
+
+        $request->validate([
+            'from_date' => 'nullable|date',
+            'to_date' => 'nullable|date|after_or_equal:from_date',
+        ]);
+
+        if ($request->session()->has('errors') && !$request->filled('from_date') && !$request->filled('to_date')) {
+            return inertia('Dashboard', [
+                'stock' => []
+            ]);
+        }
+
         $fromDate = Carbon::parse($request->input('from_date') ?? Carbon::now()->startOfMonth())->startOfDay();
         $toDate = Carbon::parse($request->input('to_date') ?? Carbon::now())->endOfDay();
 
@@ -91,7 +103,7 @@ class DashboardController extends Controller
         // Log::info($sql);
 
         return inertia('Dashboard', [
-            'stock' => fn() => $stock->get()
+            'stock' => $stock->get()
         ]);
     }
 }

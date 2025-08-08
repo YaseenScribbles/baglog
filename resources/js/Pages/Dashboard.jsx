@@ -44,7 +44,9 @@ const Dashboard = (props) => {
         get("/dashboard", {
             preserveState: true,
             preserveScroll: true,
-            only: ["stock"],
+            onError: (errors) => {
+                window.alert(Object.values(errors)[0]);
+            },
         });
     };
 
