@@ -24,7 +24,7 @@ class DeliveryController extends Controller
             ->select('s.id', 's.name');
 
         $productsSql = DB::table('products', 'p')
-            ->select('p.id', 'p.name');
+            ->select('p.id', DB::raw("p.name + ISNULL(' (' + CAST(p.per_pack AS VARCHAR(10)) + ')', '') AS name"));
 
 
         return inertia('Deliveries', [
