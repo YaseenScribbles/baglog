@@ -73,26 +73,26 @@ const Dashboard = (props) => {
             const rows = filtered.map((e) => [
                 e.product.toUpperCase(),
                 (+e.from).toFixed(0),
-                (+e.from * +e.cost_price).toFixed(2),
+                (+e.from_value).toFixed(2),
                 (+e.delivery).toFixed(0),
-                (+e.delivery * +e.cost_price).toFixed(2),
+                (+e.delivery_value).toFixed(2),
                 (+e.receipt).toFixed(0),
-                (+e.receipt * +e.cost_price).toFixed(2),
+                (+e.receipt_value).toFixed(2),
                 (+e.to).toFixed(0),
-                (+e.to * +e.cost_price).toFixed(2),
+                (+e.to_value).toFixed(2),
             ]);
 
             // Footer totals
             const totals = filtered.reduce(
                 (acc, curr) => {
                     acc[0] += +curr.from;
-                    acc[1] += +curr.from * +curr.cost_price;
+                    acc[1] += +curr.from_value;
                     acc[2] += +curr.delivery;
-                    acc[3] += +curr.delivery * +curr.cost_price;
+                    acc[3] += +curr.delivery_value;
                     acc[4] += +curr.receipt;
-                    acc[5] += +curr.receipt * +curr.cost_price;
+                    acc[5] += +curr.receipt_value;
                     acc[6] += +curr.to;
-                    acc[7] += +curr.to * +curr.cost_price;
+                    acc[7] += +curr.to_value;
                     return acc;
                 },
                 [0, 0, 0, 0, 0, 0, 0, 0]
@@ -374,8 +374,7 @@ const Dashboard = (props) => {
                                                                         size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(
-                                                                            +e.from *
-                                                                            +e.cost_price
+                                                                            +e.from_value
                                                                         ).toFixed(
                                                                             2
                                                                         )}
@@ -397,8 +396,7 @@ const Dashboard = (props) => {
                                                                         size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(
-                                                                            +e.delivery *
-                                                                            +e.cost_price
+                                                                            +e.delivery_value
                                                                         ).toFixed(
                                                                             2
                                                                         )}
@@ -420,8 +418,7 @@ const Dashboard = (props) => {
                                                                         size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(
-                                                                            +e.receipt *
-                                                                            +e.cost_price
+                                                                            +e.receipt_value
                                                                         ).toFixed(
                                                                             2
                                                                         )}
@@ -443,8 +440,7 @@ const Dashboard = (props) => {
                                                                         size={size === "large" ? "xsmall" : "small"}
                                                                     >
                                                                         {(
-                                                                            +e.to *
-                                                                            +e.cost_price
+                                                                            +e.to_value
                                                                         ).toFixed(
                                                                             2
                                                                         )}
@@ -506,8 +502,7 @@ const Dashboard = (props) => {
                                                                         curr
                                                                     ) =>
                                                                         acc +
-                                                                        +curr.from *
-                                                                            +curr.cost_price,
+                                                                        +curr.from_value,
                                                                     0
                                                                 )
                                                                 .toFixed(2)}
@@ -559,8 +554,7 @@ const Dashboard = (props) => {
                                                                         curr
                                                                     ) =>
                                                                         acc +
-                                                                        +curr.delivery *
-                                                                            +curr.cost_price,
+                                                                        +curr.delivery_value,
                                                                     0
                                                                 )
                                                                 .toFixed(2)}
@@ -612,8 +606,7 @@ const Dashboard = (props) => {
                                                                         curr
                                                                     ) =>
                                                                         acc +
-                                                                        +curr.receipt *
-                                                                            +curr.cost_price,
+                                                                        +curr.receipt_value,
                                                                     0
                                                                 )
                                                                 .toFixed(2)}
@@ -665,8 +658,7 @@ const Dashboard = (props) => {
                                                                         curr
                                                                     ) =>
                                                                         acc +
-                                                                        +curr.to *
-                                                                            +curr.cost_price,
+                                                                        +curr.to_value,
                                                                     0
                                                                 )
                                                                 .toFixed(2)}

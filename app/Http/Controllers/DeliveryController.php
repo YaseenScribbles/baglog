@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Delivery;
 use App\Models\DeliveryItem;
+use App\Services\PriceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,7 +25,7 @@ class DeliveryController extends Controller
             ->select('s.id', 's.name');
 
         $productsSql = DB::table('products', 'p')
-            ->select('p.id', DB::raw("p.name + ISNULL(' (' + CAST(p.per_pack AS VARCHAR(10)) + ')', '') AS name"));
+            ->select('p.id', DB::raw("p.name + ISNULL(' (' + CAST(p.per_pack AS VARCHAR(10)) + ')', '') AS name"), 'p.product_type');
 
 
         return inertia('Deliveries', [
@@ -45,7 +46,7 @@ class DeliveryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, PriceService $priceService)
     {
         $request->validate([
             'from' => 'required|exists:stations,id',
@@ -71,6 +72,7 @@ class DeliveryController extends Controller
                     'delivery_id' => $delivery->id,
                     'product_id' => $value['product_id'],
                     'qty' => $value['qty'],
+                    'price' => $priceService->getActivePrice($value['product_id'], $delivery->created_at),
                 ]);
             }
             DB::commit();
@@ -102,7 +104,7 @@ class DeliveryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Delivery $delivery)
+    public function update(Request $request, Delivery $delivery, PriceService $priceService)
     {
         $request->validate([
             'from' => 'required|exists:stations,id',
@@ -129,6 +131,7 @@ class DeliveryController extends Controller
                     'delivery_id' => $delivery->id,
                     'product_id' => $value['product_id'],
                     'qty' => $value['qty'],
+                    'price' => $priceService->getActivePrice($value['product_id'], $delivery->created_at),
                 ]);
             }
             DB::commit();

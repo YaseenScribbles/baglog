@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PriceHistory;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class ProductController extends Controller
 
         $productsSql = DB::table('products', 'p')
             ->join('users as u', 'u.id', '=', 'p.created_by')
-            ->select(['p.id', 'p.code', 'p.name', 'p.costprice', DB::raw('u.name as created_by'), 'p.per_pack']);
+            ->select(['p.id', 'p.code', 'p.name', 'p.costprice', DB::raw('u.name as created_by'), 'p.per_pack', 'p.product_type']);
 
         return inertia('Products', [
             'products' => fn() => $productsSql->get()
@@ -44,6 +45,7 @@ class ProductController extends Controller
             'name' => 'required|string|unique:products,name',
             'costprice' => 'nullable|numeric',
             'per_pack' => 'nullable|numeric',
+            'product_type' => 'required|string',
             'images' => 'nullable|array',
             'images.*.image' => 'nullable|image|mimes:jpg,jpeg,png'
         ]);
@@ -55,6 +57,13 @@ class ProductController extends Controller
             //code...
             DB::beginTransaction();
             $product = Product::create($masterData);
+            //add to price history
+            PriceHistory::create([
+                'product_id' => $product->id,
+                'price' => $product->costprice,
+                'valid_from' => now(),
+                'valid_to' => null,
+            ]);
 
             if ($images) {
                 foreach ($images as $img) {
@@ -112,6 +121,7 @@ class ProductController extends Controller
             'name' => 'required|string|unique:products,name,' . $product->id,
             'costprice' => 'nullable|numeric',
             'per_pack' => 'nullable|numeric',
+            'product_type' => 'required|string',
             'images' => 'nullable|array',
             'images.*.is_new' => 'nullable|boolean',
             'images.*.image' => 'nullable|image|mimes:jpg,jpeg,png',
@@ -123,6 +133,8 @@ class ProductController extends Controller
         $validated['modified_by'] = auth()->id();
 
         $masterData = collect($validated)->except('images')->toArray();
+
+        $timeStamp = now();
 
         $oldImagePaths = [];
         $newImages = [];
@@ -141,6 +153,21 @@ class ProductController extends Controller
             DB::beginTransaction();
 
             $product->update($masterData);
+
+            //update price history if costprice changed
+            if ($product->wasChanged('costprice')) {
+                //update existing price history record
+                PriceHistory::where('product_id', $product->id)
+                    ->whereNull('valid_to')
+                    ->update(['valid_to' => $timeStamp]);
+                //create new price history record
+                PriceHistory::create([
+                    'product_id' => $product->id,
+                    'price' => $product->costprice,
+                    'valid_from' => $timeStamp,
+                    'valid_to' => null,
+                ]);
+            }
 
             $imagesToDelete = $product->images()->whereNotIn('img_path', $oldImagePaths)->get();
 

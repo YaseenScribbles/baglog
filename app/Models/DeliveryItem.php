@@ -12,7 +12,8 @@ class DeliveryItem extends Model
     protected $fillable = [
         'delivery_id',
         'product_id',
-        'qty'
+        'qty',
+        'price'
     ];
 
     public $timestamps = false;

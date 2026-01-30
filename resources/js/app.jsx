@@ -31,6 +31,18 @@ const customTheme = deepMerge(grommet, {
                 dark: "#3a5a40",
                 light: "#3a5a40",
             },
+            "neutral-8": {
+                dark: "#6D4C41", // deep earthy brown
+                light: "#6D4C41",
+            },
+            "neutral-9": {
+                dark: "#2F3E46", // dark slate / blue-gray
+                light: "#2F3E46",
+            },
+            "neutral-10": {
+                dark: "#1B1B1B", // near-black neutral
+                light: "#1B1B1B",
+            },
         },
     },
 });
@@ -44,7 +56,7 @@ createInertiaApp({
         createRoot(el).render(
             <Grommet theme={customTheme} themeMode="dark" full>
                 <App {...props} />
-            </Grommet>
+            </Grommet>,
         );
     },
 });

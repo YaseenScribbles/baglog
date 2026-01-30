@@ -38,6 +38,8 @@ export default function Received(props) {
             const formattedReceived = props.received.map((e) => ({
                 ...e,
                 qty: +e.qty,
+                price: +e.price,
+                amount: +e.price * +e.qty,
             }));
             setReceived(formattedReceived);
         }
@@ -121,8 +123,8 @@ export default function Received(props) {
                                         received,
                                         `Received Report ${format(
                                             data.from_date,
-                                            "d-MMM"
-                                        )} to ${format(data.to_date, "d-MMM")}`
+                                            "d-MMM",
+                                        )} to ${format(data.to_date, "d-MMM")}`,
                                     )
                                 }
                                 icon={<Download />}
@@ -160,7 +162,7 @@ export default function Received(props) {
                                         header: <Text weight="bold">Date</Text>,
                                         render: (datum) =>
                                             new Date(
-                                                datum.created_at
+                                                datum.created_at,
                                             ).toLocaleDateString(),
                                     },
                                     {
@@ -183,6 +185,29 @@ export default function Received(props) {
                                         aggregate: "sum",
                                         footer: { aggregate: true },
                                         align: "end",
+                                    },
+                                    // ✅ Price column (NEW)
+                                    {
+                                        property: "price",
+                                        header: (
+                                            <Text weight="bold">Price</Text>
+                                        ),
+                                        render: (datum) =>
+                                            Number(datum.price).toFixed(2),
+                                        align: "end",
+                                    },
+
+                                    // ✅ Amount = Price * Qty (NEW)
+                                    {
+                                        property: "amount",
+                                        header: (
+                                            <Text weight="bold">Amount</Text>
+                                        ),
+                                        render: (datum) =>
+                                            Number(datum.amount).toFixed(2),
+                                        align: "end",
+                                        aggregate: "sum",
+                                        footer: { aggregate: true },
                                     },
                                 ]}
                             />

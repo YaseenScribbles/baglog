@@ -21,7 +21,8 @@ class ReceiptObserver implements ShouldHandleEventsAfterCommit
                 'type' => 'receipt',
                 'source_id' => $receipt->id,
                 'qty' => $item->qty,
-                'recorded_at' => $receipt->created_at
+                'recorded_at' => $receipt->created_at,
+                'price' => $item->price
             ]);
         }
     }

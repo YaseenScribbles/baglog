@@ -28,7 +28,7 @@ import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import { Trash, Shop, Edit, Download, Add, FormSubtract } from "grommet-icons";
 import axios from "axios";
 import { format } from "date-fns";
-import { excelExport } from "./Common/common";
+import { excelExport, getColorByProductType } from "./Common/common";
 
 const reducer = (state, action) => {
     switch (action.type) {
@@ -63,6 +63,7 @@ const Receipts = (props) => {
     const [receipts, setReceipts] = useState(props.receipts);
     const [stations] = useState(props.stations);
     const [products] = useState(props.products);
+    const [filteredProducts, setFilteredProducts] = useState(props.products);
     const [editId, setEditId] = useState(null);
     const [message, setMessage] = useState("");
     const [items, dispatch] = useReducer(reducer, []);
@@ -70,6 +71,7 @@ const Receipts = (props) => {
         id: "",
         name: "",
         qty: "",
+        product_type: "",
     });
     const [selectedStation, setSelectedStation] = useState(null);
     const productRef = useRef();
@@ -265,7 +267,7 @@ const Receipts = (props) => {
                                                     }
                                                     onChange={(e) => {
                                                         setSelectedStation(
-                                                            e.option
+                                                            e.option,
                                                         );
                                                     }}
                                                     size={
@@ -315,7 +317,7 @@ const Receipts = (props) => {
                                                             ...prev,
                                                             ref_date: format(
                                                                 value,
-                                                                "yyyy-MM-dd"
+                                                                "yyyy-MM-dd",
                                                             ),
                                                         }));
                                                     }}
@@ -341,7 +343,7 @@ const Receipts = (props) => {
                                             name="file"
                                             onChange={(event) => {
                                                 const fileList = Array.from(
-                                                    event.target.files
+                                                    event.target.files,
                                                 );
                                                 if (fileList.length) {
                                                     setData((prev) => ({
@@ -374,24 +376,14 @@ const Receipts = (props) => {
                                             name="product_id"
                                             htmlFor="product_id"
                                             style={{ flexBasis: "80%" }}
-                                            placeholder="Product"
                                         >
                                             <Select
                                                 id="product_id"
                                                 name="product_id"
-                                                options={products}
-                                                labelKey={"name"}
-                                                valueKey={"id"}
+                                                options={filteredProducts}
                                                 value={selectedProduct}
-                                                onChange={(e) => {
-                                                    setSelectedProduct(
-                                                        (prev) => ({
-                                                            ...prev,
-                                                            id: e.value.id,
-                                                            name: e.value.name,
-                                                        })
-                                                    );
-                                                }}
+                                                valueKey="id"
+                                                labelKey="name"
                                                 size={
                                                     size === "large"
                                                         ? "medium"
@@ -399,8 +391,62 @@ const Receipts = (props) => {
                                                 }
                                                 ref={productRef}
                                                 placeholder="Product"
-                                            />
+                                                onChange={(e) => {
+                                                    setSelectedProduct(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            id: e.value.id,
+                                                            name: e.value.name,
+                                                            product_type:
+                                                                e.value
+                                                                    .product_type,
+                                                        }),
+                                                    );
+                                                    setFilteredProducts(
+                                                        products,
+                                                    );
+                                                }}
+                                                onSearch={(text) => {
+                                                    if (!text) {
+                                                        setFilteredProducts(
+                                                            products,
+                                                        );
+                                                        return;
+                                                    }
+
+                                                    setFilteredProducts(
+                                                        products.filter(
+                                                            (product) =>
+                                                                product.name
+                                                                    .toLowerCase()
+                                                                    .includes(
+                                                                        text.toLowerCase(),
+                                                                    ),
+                                                        ),
+                                                    );
+                                                }}
+                                            >
+                                                {(option) => (
+                                                    <Box
+                                                        pad={{
+                                                            vertical: "xsmall",
+                                                        }}
+                                                        margin={{
+                                                            horizontal: "small",
+                                                        }}
+                                                    >
+                                                        <Text
+                                                            color={getColorByProductType(
+                                                                option.product_type,
+                                                            )}
+                                                        >
+                                                            {option.name}
+                                                        </Text>
+                                                    </Box>
+                                                )}
+                                            </Select>
                                         </FormField>
+
                                         <FormField name="qty" htmlFor="qty">
                                             <TextInput
                                                 id="qty"
@@ -413,7 +459,7 @@ const Receipts = (props) => {
                                                         (prev) => ({
                                                             ...prev,
                                                             qty: e.target.value,
-                                                        })
+                                                        }),
                                                     );
                                                 }}
                                                 size={
@@ -430,7 +476,7 @@ const Receipts = (props) => {
                                             onClick={() => {
                                                 if (!selectedProduct.id) {
                                                     setMessage(
-                                                        "Select product first"
+                                                        "Select product first",
                                                     );
                                                     return;
                                                 }
@@ -442,7 +488,7 @@ const Receipts = (props) => {
                                                 const index = items.findIndex(
                                                     (item) =>
                                                         item.id ===
-                                                        selectedProduct.id
+                                                        selectedProduct.id,
                                                 );
 
                                                 if (index === -1) {
@@ -536,7 +582,7 @@ const Receipts = (props) => {
                                                             </TableCell>
                                                             <TableCell>
                                                                 {(+item.qty).toFixed(
-                                                                    0
+                                                                    0,
                                                                 )}
                                                             </TableCell>
                                                             <TableCell>
@@ -553,7 +599,7 @@ const Receipts = (props) => {
                                                                                 type: "remove",
                                                                                 payload:
                                                                                     item.id,
-                                                                            }
+                                                                            },
                                                                         );
                                                                     }}
                                                                 />
@@ -586,7 +632,7 @@ const Receipts = (props) => {
                                                         >
                                                             <strong>
                                                                 {(+data.total_qty).toFixed(
-                                                                    0
+                                                                    0,
                                                                 )}
                                                             </strong>
                                                         </TableCell>
@@ -623,7 +669,9 @@ const Receipts = (props) => {
                                             onClick={reset}
                                         />
                                         {editId &&
-                                            data.receipt_images.length > 0 && data.receipt_images[0].image_url && (
+                                            data.receipt_images.length > 0 &&
+                                            data.receipt_images[0]
+                                                .image_url && (
                                                 <Button
                                                     type="button"
                                                     icon={
@@ -876,11 +924,15 @@ const Receipts = (props) => {
                                             primary: true,
                                         },
                                         {
+                                            property: "id",
+                                            header: "R. No",
+                                        },
+                                        {
                                             property: "created_at",
                                             header: "Date",
                                             render: (datum) =>
                                                 new Date(
-                                                    datum.created_at
+                                                    datum.created_at,
                                                 ).toLocaleDateString(),
                                         },
                                         {
@@ -892,7 +944,7 @@ const Receipts = (props) => {
                                             header: "Ref Date",
                                             render: (datum) =>
                                                 new Date(
-                                                    datum.ref_date
+                                                    datum.ref_date,
                                                 ).toLocaleDateString(),
                                         },
                                         {
@@ -927,14 +979,14 @@ const Receipts = (props) => {
                                                             hoverIndicator
                                                             onClick={async () => {
                                                                 setLoading(
-                                                                    true
+                                                                    true,
                                                                 );
                                                                 setShowForm(
-                                                                    true
+                                                                    true,
                                                                 );
                                                                 reset();
                                                                 setEditId(
-                                                                    datum.id
+                                                                    datum.id,
                                                                 );
                                                                 let {
                                                                     data: {
@@ -947,14 +999,14 @@ const Receipts = (props) => {
                                                                 } =
                                                                     await axios.get(
                                                                         "/receipts/" +
-                                                                            datum.id
+                                                                            datum.id,
                                                                     );
 
                                                                 setSelectedStation(
                                                                     {
                                                                         id: station.id.toString(),
                                                                         name: station.name,
-                                                                    }
+                                                                    },
                                                                 );
 
                                                                 setData(
@@ -964,11 +1016,11 @@ const Receipts = (props) => {
                                                                         ref_date:
                                                                             format(
                                                                                 ref_date,
-                                                                                "yyyy-MM-dd"
+                                                                                "yyyy-MM-dd",
                                                                             ),
                                                                         receipt_images:
                                                                             images,
-                                                                    })
+                                                                    }),
                                                                 );
 
                                                                 items.forEach(
@@ -984,12 +1036,12 @@ const Receipts = (props) => {
                                                                                             .name,
                                                                                         qty: item.qty,
                                                                                     },
-                                                                            }
+                                                                            },
                                                                         );
-                                                                    }
+                                                                    },
                                                                 );
                                                                 setLoading(
-                                                                    false
+                                                                    false,
                                                                 );
                                                             }}
                                                         />
@@ -1004,11 +1056,11 @@ const Receipts = (props) => {
                                                             onClick={() => {
                                                                 if (
                                                                     window.confirm(
-                                                                        "Are you sure?"
+                                                                        "Are you sure to delete this receipt " + datum.id + "?",
                                                                     )
                                                                 ) {
                                                                     deleteReceipt(
-                                                                        datum.id
+                                                                        datum.id,
                                                                     );
                                                                 }
                                                             }}

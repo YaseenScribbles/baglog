@@ -19,7 +19,7 @@ class ReportController extends Controller
             ->join('stations as s', 's.id', '=', 'r.station_id')
             ->join('products as p', 'p.id', '=', 'ri.product_id')
             ->whereBetween('r.created_at', [$fromDate, $toDate])
-            ->select([DB::raw('ROW_NUMBER() OVER (ORDER BY r.id) as s_no'), 'r.id', 'r.created_at', DB::raw('s.name as station'), DB::raw('p.name as product'), 'ri.qty'])
+            ->select([DB::raw('ROW_NUMBER() OVER (ORDER BY r.id) as s_no'), 'r.id', 'r.created_at', DB::raw('s.name as station'), DB::raw('p.name as product'), 'ri.qty', 'ri.price'])
             ->orderBy('r.id');
 
         return inertia('Reports/Received', ['received' => fn() => $receivedSql->get()]);
@@ -37,7 +37,7 @@ class ReportController extends Controller
             ->join('stations as s2', 's2.id', '=', 'd.to')
             ->join('products as p', 'p.id', '=', 'di.product_id')
             ->whereBetween('d.created_at', [$fromDate, $toDate])
-            ->select([DB::raw('ROW_NUMBER() OVER (ORDER BY d.id) as s_no'), 'd.id', 'd.created_at', DB::raw('s1.name as [from]'), DB::raw('s2.name as [to]'), DB::raw('p.name as product'), 'di.qty'])
+            ->select([DB::raw('ROW_NUMBER() OVER (ORDER BY d.id) as s_no'), 'd.id', 'd.created_at', DB::raw('s1.name as [from]'), DB::raw('s2.name as [to]'), DB::raw('p.name as product'), 'di.qty', 'di.price'])
             ->orderBy('d.id');
 
         return inertia('Reports/Delivered', ['delivered' => fn() => $deliveredSql->get()]);
@@ -48,7 +48,7 @@ class ReportController extends Controller
         $stockSql = DB::table('stock_summary', 'st')
             ->join('stations as s', 's.id', '=', 'st.station_id')
             ->join('products as p', 'p.id', '=', 'st.product_id')
-            ->select([DB::raw('ROW_NUMBER() OVER (ORDER BY s.id, p.id) as s_no'), DB::raw('s.name as station'), DB::raw('p.name as product'), DB::raw('st.stock as qty')])
+            ->select([DB::raw('ROW_NUMBER() OVER (ORDER BY s.id, p.id) as s_no'), DB::raw('s.name as station'), DB::raw('p.name as product'), DB::raw('st.stock as qty'), 'st.price'])
             ->orderBy('s.id')
             ->orderBy('p.id');
 

@@ -16,7 +16,8 @@ class Product extends Model
         'created_by',
         'modified_by',
         'active',
-        'per_pack'
+        'per_pack',
+        'product_type',
     ];
 
     public function images(){

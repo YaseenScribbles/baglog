@@ -38,6 +38,8 @@ export default function Delivered(props) {
             const formattedDelivered = props.delivered.map((e) => ({
                 ...e,
                 qty: +e.qty,
+                price: +e.price,
+                amount: +e.price * +e.qty,
             }));
             setDelivered(formattedDelivered);
         }
@@ -182,6 +184,22 @@ export default function Delivered(props) {
                                         header: <Text weight="bold">Qty</Text>,
                                         render: (datum) =>
                                             (+datum.qty).toFixed(0),
+                                        aggregate: "sum",
+                                        footer: { aggregate: true },
+                                        align: "end",
+                                    },
+                                    {
+                                        property: "price",
+                                        header: <Text weight="bold">Price</Text>,
+                                        render: (datum) =>
+                                            (+datum.price).toFixed(2),
+                                        align: "end",
+                                    },
+                                    {
+                                        property: "amount",
+                                        header: <Text weight="bold">Amount</Text>,
+                                        render: (datum) =>
+                                            (+datum.amount).toFixed(2),
                                         aggregate: "sum",
                                         footer: { aggregate: true },
                                         align: "end",

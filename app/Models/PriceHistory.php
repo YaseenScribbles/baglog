@@ -5,21 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ReceiptItem extends Model
+class PriceHistory extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'receipt_id',
         'product_id',
-        'qty',
-        'price'
+        'price',
+        'valid_from',
+        'valid_to',
     ];
 
-    public $timestamps = false;
-
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
+    //set the table name
+    protected $table = 'price_history';
 }

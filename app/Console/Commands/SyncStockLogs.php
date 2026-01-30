@@ -46,6 +46,7 @@ class SyncStockLogs extends Command
                             'source_id' => $receipt->id,
                             'qty' => $item->qty,
                             'recorded_at' => $receipt->created_at,
+                            'price' => $item->price
                         ]);
                     }
                 }
@@ -62,6 +63,7 @@ class SyncStockLogs extends Command
                             'source_id' => $delivery->id,
                             'qty' => -$item->qty,
                             'recorded_at' => $delivery->created_at,
+                            'price' => $item->price
                         ]);
 
                         StockLog::create([
@@ -71,6 +73,7 @@ class SyncStockLogs extends Command
                             'source_id' => $delivery->id,
                             'qty' => $item->qty,
                             'recorded_at' => $delivery->created_at,
+                            'price' => $item->price
                         ]);
                     }
                 }

@@ -28,7 +28,7 @@ import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import { Trash, Shop, Add, Edit, Download, FormSubtract } from "grommet-icons";
 import axios from "axios";
 import { format } from "date-fns";
-import { excelExport } from "./Common/common";
+import { excelExport, getColorByProductType } from "./Common/common";
 
 const reducer = (state, action) => {
     switch (action.type) {
@@ -62,6 +62,7 @@ const Deliveries = (props) => {
     const [deliveries, setDeliveries] = useState(props.deliveries);
     const [stations] = useState(props.stations);
     const [products] = useState(props.products);
+    const [filteredProducts, setFilteredProducts] = useState(props.products);
     const [editId, setEditId] = useState(null);
     const [message, setMessage] = useState("");
     const [items, dispatch] = useReducer(reducer, []);
@@ -69,6 +70,7 @@ const Deliveries = (props) => {
         id: "",
         name: "",
         qty: "",
+        product_type: "",
     });
     const [selectedFromStation, setSelectedFromStation] = useState(null);
     const [selectedToStation, setSelectedToStation] = useState(null);
@@ -214,7 +216,7 @@ const Deliveries = (props) => {
         if (selectedProduct.id) {
             axios
                 .get(
-                    `/deliverystock?station_id=${data.from}&product_id=${selectedProduct.id}`
+                    `/deliverystock?station_id=${data.from}&product_id=${selectedProduct.id}`,
                 )
                 .then(({ data }) => {
                     if (data.stock) {
@@ -285,7 +287,7 @@ const Deliveries = (props) => {
                                                     }
                                                     onChange={(e) => {
                                                         setSelectedFromStation(
-                                                            e.option
+                                                            e.option,
                                                         );
                                                     }}
                                                     size="small"
@@ -313,7 +315,7 @@ const Deliveries = (props) => {
                                                     }
                                                     onChange={(e) => {
                                                         setSelectedToStation(
-                                                            e.option
+                                                            e.option,
                                                         );
                                                     }}
                                                     size="small"
@@ -361,7 +363,7 @@ const Deliveries = (props) => {
                                             <Select
                                                 id="product_id"
                                                 name="product_id"
-                                                options={products}
+                                                options={filteredProducts}
                                                 labelKey={"name"}
                                                 valueKey={"id"}
                                                 value={selectedProduct}
@@ -371,13 +373,51 @@ const Deliveries = (props) => {
                                                             ...prev,
                                                             id: e.value.id,
                                                             name: e.value.name,
-                                                        })
+                                                            product_type:
+                                                                e.value
+                                                                    .product_type,
+                                                        }),
+                                                    );
+                                                    setFilteredProducts(
+                                                        products,
                                                     );
                                                 }}
                                                 size="small"
                                                 ref={productRef}
                                                 disabled={data.from === ""}
-                                            />
+                                                onSearch={(text) => {
+                                                    const filtered =
+                                                        products.filter((p) =>
+                                                            p.name
+                                                                .toLowerCase()
+                                                                .includes(
+                                                                    text.toLowerCase(),
+                                                                ),
+                                                        );
+                                                    setFilteredProducts(
+                                                        filtered,
+                                                    );
+                                                }}
+                                            >
+                                                {(option) => (
+                                                    <Box
+                                                        pad={{
+                                                            vertical: "xsmall",
+                                                        }}
+                                                        margin={{
+                                                            horizontal: "small",
+                                                        }}
+                                                    >
+                                                        <Text
+                                                            color={getColorByProductType(
+                                                                option.product_type,
+                                                            )}
+                                                        >
+                                                            {option.name}
+                                                        </Text>
+                                                    </Box>
+                                                )}
+                                            </Select>
                                         </FormField>
                                         <FormField
                                             name="qty"
@@ -395,7 +435,7 @@ const Deliveries = (props) => {
                                                         (prev) => ({
                                                             ...prev,
                                                             qty: e.target.value,
-                                                        })
+                                                        }),
                                                     );
                                                 }}
                                                 size="small"
@@ -409,7 +449,7 @@ const Deliveries = (props) => {
                                             onClick={() => {
                                                 if (!selectedProduct.id) {
                                                     setMessage(
-                                                        "Select product first"
+                                                        "Select product first",
                                                     );
                                                     return;
                                                 }
@@ -424,7 +464,7 @@ const Deliveries = (props) => {
                                                 const index = items.findIndex(
                                                     (item) =>
                                                         item.id ===
-                                                        selectedProduct.id
+                                                        selectedProduct.id,
                                                 );
 
                                                 const totalQtyInItems =
@@ -436,7 +476,7 @@ const Deliveries = (props) => {
                                                     currentStock
                                                 ) {
                                                     setMessage(
-                                                        "Stock not available"
+                                                        "Stock not available",
                                                     );
                                                     return;
                                                 }
@@ -528,7 +568,7 @@ const Deliveries = (props) => {
                                                             </TableCell>
                                                             <TableCell>
                                                                 {(+item.qty).toFixed(
-                                                                    0
+                                                                    0,
                                                                 )}
                                                             </TableCell>
                                                             <TableCell>
@@ -545,7 +585,7 @@ const Deliveries = (props) => {
                                                                                 type: "remove",
                                                                                 payload:
                                                                                     item.id,
-                                                                            }
+                                                                            },
                                                                         );
                                                                     }}
                                                                 />
@@ -578,7 +618,7 @@ const Deliveries = (props) => {
                                                         >
                                                             <strong>
                                                                 {(+data.total_qty).toFixed(
-                                                                    0
+                                                                    0,
                                                                 )}
                                                             </strong>
                                                         </TableCell>
@@ -688,11 +728,15 @@ const Deliveries = (props) => {
                                             primary: true,
                                         },
                                         {
+                                            property: "id",
+                                            header: "D. No",
+                                        },
+                                        {
                                             property: "created_at",
                                             header: "Date",
                                             render: (datum) =>
                                                 new Date(
-                                                    datum.created_at
+                                                    datum.created_at,
                                                 ).toLocaleDateString(),
                                         },
                                         {
@@ -733,7 +777,7 @@ const Deliveries = (props) => {
                                                         hoverIndicator
                                                         onClick={async () => {
                                                             setLoading(true);
-                                                            setShowForm(true)
+                                                            setShowForm(true);
                                                             reset();
                                                             setEditId(datum.id);
                                                             let {
@@ -744,21 +788,21 @@ const Deliveries = (props) => {
                                                                 },
                                                             } = await axios.get(
                                                                 "/deliveries/" +
-                                                                    datum.id
+                                                                    datum.id,
                                                             );
 
                                                             setSelectedFromStation(
                                                                 {
                                                                     id: from.id.toString(),
                                                                     name: from.name,
-                                                                }
+                                                                },
                                                             );
 
                                                             setSelectedToStation(
                                                                 {
                                                                     id: to.id.toString(),
                                                                     name: to.name,
-                                                                }
+                                                                },
                                                             );
 
                                                             items.forEach(
@@ -774,7 +818,7 @@ const Deliveries = (props) => {
                                                                                 qty: item.qty,
                                                                             },
                                                                     });
-                                                                }
+                                                                },
                                                             );
                                                             setLoading(false);
                                                         }}
@@ -789,11 +833,13 @@ const Deliveries = (props) => {
                                                             onClick={() => {
                                                                 if (
                                                                     window.confirm(
-                                                                        "Are you sure?"
+                                                                        "Are you sure to delete this delivery " +
+                                                                            datum.id +
+                                                                            "?",
                                                                     )
                                                                 ) {
                                                                     deleteDelivery(
-                                                                        datum.id
+                                                                        datum.id,
                                                                     );
                                                                 }
                                                             }}

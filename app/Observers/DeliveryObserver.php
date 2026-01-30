@@ -22,7 +22,8 @@ class DeliveryObserver implements ShouldHandleEventsAfterCommit
                 'type' => 'delivery',
                 'source_id' => $delivery->id,
                 'qty' => -$item->qty,
-                'recorded_at' => $delivery->created_at
+                'recorded_at' => $delivery->created_at,
+                'price' => $item->price
             ]);
 
             //to station
@@ -32,7 +33,8 @@ class DeliveryObserver implements ShouldHandleEventsAfterCommit
                 'type' => 'delivery',
                 'source_id' => $delivery->id,
                 'qty' => $item->qty,
-                'recorded_at' => $delivery->created_at
+                'recorded_at' => $delivery->created_at,
+                'price' => $item->price
             ]);
         }
     }

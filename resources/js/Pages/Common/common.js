@@ -21,3 +21,14 @@ export const excelExport = (data, name) => {
 
     XLSX.writeFile(workbook, name + ".xlsx");
 };
+
+export const getColorByProductType = (productType) => {
+    switch (productType.toLowerCase()) {
+        case "accessory":
+            return "light-1";
+        case "gift":
+            return "accent-1";
+        default:
+            return "neutral-1";
+    }
+};

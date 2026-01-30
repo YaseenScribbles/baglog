@@ -33,6 +33,8 @@ export default function Stock(props) {
             const formattedStock = props.stock.map((e) => ({
                 ...e,
                 qty: +e.qty,
+                price: +e.price,
+                amount: +e.price * +e.qty,
             }));
             setStock(formattedStock);
         }
@@ -125,6 +127,22 @@ export default function Stock(props) {
                                         header: <Text weight="bold">Qty</Text>,
                                         render: (datum) =>
                                             (+datum.qty).toFixed(0),
+                                        aggregate: "sum",
+                                        footer: { aggregate: true },
+                                        align: "end",
+                                    },
+                                    {
+                                        property: "price",
+                                        header: <Text weight="bold">Price</Text>,
+                                        render: (datum) =>
+                                            (+datum.price).toFixed(2),
+                                        align: "end",
+                                    },
+                                    {
+                                        property: "amount",
+                                        header: <Text weight="bold">Amount</Text>,
+                                        render: (datum) =>
+                                            (+datum.amount).toFixed(2),
                                         aggregate: "sum",
                                         footer: { aggregate: true },
                                         align: "end",

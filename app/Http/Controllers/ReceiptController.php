@@ -8,6 +8,7 @@ use App\Models\ReceiptItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Services\PriceService;
 
 class ReceiptController extends Controller
 {
@@ -26,7 +27,7 @@ class ReceiptController extends Controller
             ->select('s.id', 's.name');
 
         $productsSql = DB::table('products', 'p')
-            ->select('p.id', DB::raw("p.name + ISNULL(' (' + CAST(p.per_pack AS VARCHAR(10)) + ')', '') AS name"));
+            ->select('p.id', DB::raw("p.name + ISNULL(' (' + CAST(p.per_pack AS VARCHAR(10)) + ')', '') AS name"), 'p.product_type');
 
 
         return inertia('Receipts', [
@@ -47,7 +48,7 @@ class ReceiptController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, PriceService $priceService)
     {
         $request->validate([
             'station_id' => 'required|exists:stations,id',
@@ -76,6 +77,7 @@ class ReceiptController extends Controller
                     'receipt_id' => $receipt->id,
                     'product_id' => $value['product_id'],
                     'qty' => $value['qty'],
+                    'price' => $priceService->getActivePrice($value['product_id'], $receipt->created_at),
                 ]);
             }
 
@@ -122,7 +124,7 @@ class ReceiptController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Receipt $receipt)
+    public function update(Request $request, Receipt $receipt, PriceService $priceService)
     {
         $request->validate([
             'station_id' => 'required|exists:stations,id',
@@ -159,6 +161,7 @@ class ReceiptController extends Controller
                     'receipt_id' => $receipt->id,
                     'product_id' => $value['product_id'],
                     'qty' => $value['qty'],
+                    'price' => $priceService->getActivePrice($value['product_id'], $receipt->created_at),
                 ]);
             }
 

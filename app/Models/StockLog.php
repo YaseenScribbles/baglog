@@ -16,5 +16,6 @@ class StockLog extends Model
         'source_id',
         'qty',
         'recorded_at',
+        'price'
     ];
 }

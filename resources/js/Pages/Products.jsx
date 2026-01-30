@@ -12,9 +12,10 @@ import {
     DataTable,
     Data,
     FileInput,
+    Select,
 } from "grommet";
 import MyHeader from "./Components/Header";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Edit, Trash, Shop, FormClose } from "grommet-icons";
 import axios from "axios";
 
@@ -24,6 +25,7 @@ const Products = (props) => {
         name: "",
         costprice: "",
         per_pack: "",
+        product_type: "",
         images: [],
     });
     const [headerHeight, setHeaderHeight] = useState(0);
@@ -33,6 +35,7 @@ const Products = (props) => {
     const size = useContext(ResponsiveContext);
     const [fileInputKey, setFileInputKey] = useState(Date.now());
     const [loading, setLoading] = useState(false);
+    const [selectedProductType, setSelectedProductType] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -48,6 +51,7 @@ const Products = (props) => {
             name: "",
             costprice: "",
             per_pack: "",
+            product_type: "",
             images: [],
         });
         setEditId(null);
@@ -58,7 +62,6 @@ const Products = (props) => {
         post("/products", {
             preserveScroll: true,
             onSuccess: (page) => {
-                console.log(page.props);
                 if (page.props?.products) {
                     setProducts(page.props.products);
                 }
@@ -78,7 +81,6 @@ const Products = (props) => {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: (page) => {
-                console.log(page.props);
                 if (page.props?.products) {
                     setProducts(page.props.products);
                 }
@@ -104,6 +106,15 @@ const Products = (props) => {
             },
         });
     };
+
+    useEffect(() => {
+        if (selectedProductType) {
+            setData((prev) => ({
+                ...prev,
+                product_type: selectedProductType.id,
+            }));
+        }
+    }, [selectedProductType]);
 
     return (
         <Box height={"100dvh"}>
@@ -199,6 +210,40 @@ const Products = (props) => {
                                     </FormField>
                                 </Box>
                             </Box>
+                            <Box direction="row" gap={"xsmall"}>
+                                <Box basis="100%" height={"100%"}>
+                                    <FormField
+                                        name="product_type"
+                                        htmlFor="product_type"
+                                    >
+                                        <Select
+                                            id="product_type"
+                                            name="product_type"
+                                            options={[
+                                                {
+                                                    id: "accessory",
+                                                    name: "Accessory",
+                                                },
+                                                { id: "gift", name: "Gift" },
+                                            ]}
+                                            labelKey={"name"}
+                                            valueKey={{
+                                                key: "id",
+                                                reduce: true,
+                                            }}
+                                            value={
+                                                selectedProductType?.id || ""
+                                            }
+                                            onChange={(e) => {
+                                                setSelectedProductType(
+                                                    e.option,
+                                                );
+                                            }}
+                                            placeholder={"Product Type"}
+                                        />
+                                    </FormField>
+                                </Box>
+                            </Box>
                             <Box
                                 margin={{ bottom: "small" }}
                                 flex="grow"
@@ -210,14 +255,14 @@ const Products = (props) => {
                                     name="file"
                                     onChange={(event) => {
                                         const fileList = Array.from(
-                                            event.target.files
+                                            event.target.files,
                                         );
                                         const newImages = fileList.map(
                                             (file) => ({
                                                 is_new: true,
                                                 image: file,
                                                 path: URL.createObjectURL(file),
-                                            })
+                                            }),
                                         );
 
                                         setData((prev) => ({
@@ -246,7 +291,9 @@ const Products = (props) => {
                                                 background="light-2"
                                                 align="center"
                                                 justify="center"
-                                                style={{ position: "relative" }}
+                                                style={{
+                                                    position: "relative",
+                                                }}
                                             >
                                                 <img
                                                     src={image.path}
@@ -265,7 +312,7 @@ const Products = (props) => {
                                                         const updated =
                                                             data.images.filter(
                                                                 (_, i) =>
-                                                                    i !== index
+                                                                    i !== index,
                                                             );
                                                         setData((prev) => ({
                                                             ...prev,
@@ -286,24 +333,27 @@ const Products = (props) => {
                                         ))}
                                 </Box>
                             </Box>
-
-                            <Box direction="row" gap="medium" justify="end">
-                                {props.auth.user.role !== "user" && (
+                            <Box flex="grow" justify="center">
+                                <Box direction="row" gap="medium" justify="end">
+                                    {props.auth.user.role !== "user" && (
+                                        <Button
+                                            type="button"
+                                            primary
+                                            label="Submit"
+                                            onClick={
+                                                editId
+                                                    ? updateProduct
+                                                    : saveProduct
+                                            }
+                                            disabled={processing}
+                                        />
+                                    )}
                                     <Button
-                                        type="button"
-                                        primary
-                                        label="Submit"
-                                        onClick={
-                                            editId ? updateProduct : saveProduct
-                                        }
-                                        disabled={processing}
+                                        type="reset"
+                                        label="Reset"
+                                        onClick={reset}
                                     />
-                                )}
-                                <Button
-                                    type="reset"
-                                    label="Reset"
-                                    onClick={reset}
-                                />
+                                </Box>
                             </Box>
                         </Box>
                     )}
@@ -441,6 +491,10 @@ const Products = (props) => {
                                             header: "Per Pack",
                                         },
                                         {
+                                            property: "product_type",
+                                            header: "Product Type",
+                                        },
+                                        {
                                             property: "created_by",
                                             header: "Created By",
                                         },
@@ -469,18 +523,18 @@ const Products = (props) => {
                                                                 },
                                                             } = await axios.get(
                                                                 "/products/" +
-                                                                    datum.id
+                                                                    datum.id,
                                                             );
 
                                                             const oldImages =
                                                                 images.map(
                                                                     (
-                                                                        image
+                                                                        image,
                                                                     ) => ({
                                                                         is_new: false,
                                                                         image: null,
                                                                         path: image.img_path,
-                                                                    })
+                                                                    }),
                                                                 );
 
                                                             setData({
@@ -492,6 +546,20 @@ const Products = (props) => {
                                                                     datum.per_pack,
                                                                 images: oldImages,
                                                             });
+                                                            setSelectedProductType(
+                                                                {
+                                                                    id: datum.product_type,
+                                                                    name:
+                                                                        datum.product_type
+                                                                            .charAt(
+                                                                                0,
+                                                                            )
+                                                                            .toUpperCase() +
+                                                                        datum.product_type.slice(
+                                                                            1,
+                                                                        ),
+                                                                },
+                                                            );
                                                             setLoading(false);
                                                         }}
                                                     />
@@ -505,11 +573,13 @@ const Products = (props) => {
                                                             onClick={() => {
                                                                 if (
                                                                     window.confirm(
-                                                                        "Are you sure?"
+                                                                        "Are you sure to remove this product " +
+                                                                            datum.name +
+                                                                            "?",
                                                                     )
                                                                 ) {
                                                                     deleteProduct(
-                                                                        datum.id
+                                                                        datum.id,
                                                                     );
                                                                 }
                                                             }}

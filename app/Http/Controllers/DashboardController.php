@@ -27,29 +27,29 @@ class DashboardController extends Controller
         $toDate = Carbon::parse($request->input('to_date') ?? Carbon::now())->endOfDay();
 
         $fromDateStockSub = DB::table('stock_logs')
-            ->select('station_id', 'product_id', DB::raw('sum(qty) as stock'))
+            ->select('station_id', 'product_id', DB::raw('sum(qty) as stock'), DB::raw('sum(price * qty) as from_value'))
             ->where('recorded_at', '<=', $fromDate)
             ->groupBy('station_id', 'product_id');
 
         $toDateStockSub = DB::table('stock_logs')
-            ->select('station_id', 'product_id', DB::raw('sum(qty) as stock'))
+            ->select('station_id', 'product_id', DB::raw('sum(qty) as stock'), DB::raw('sum(price * qty) as to_value'))
             ->where('recorded_at', '<=', $toDate)
             ->groupBy('station_id', 'product_id');
 
         $deliveryInBetweenSub = DB::table('deliveries as d')
             ->join('delivery_items as di', 'di.delivery_id', '=', 'd.id')
-            ->select(DB::raw('d.[from] as station_id'), 'di.product_id', DB::raw('sum(di.qty) as qty'))
+            ->select(DB::raw('d.[from] as station_id'), 'di.product_id', DB::raw('sum(di.qty) as qty'), DB::raw('sum(di.price * di.qty) as delivery_value'))
             ->whereBetween('d.created_at', [$fromDate, $toDate])
             ->groupBy('d.from', 'di.product_id');
 
         $receiptPart = DB::table("receipts", "r")
             ->join("receipt_items as ri", "ri.receipt_id", '=', "r.id")
-            ->select("r.station_id", "ri.product_id", "ri.qty")
+            ->select("r.station_id", "ri.product_id", "ri.qty", DB::raw("ri.price * ri.qty as cost_value"))
             ->whereBetween("r.created_at", [$fromDate, $toDate]);
 
         $deliveryPart = DB::table("deliveries", "d")
             ->join("delivery_items as di", "di.delivery_id", '=', "d.id")
-            ->select(DB::raw("d.[to] as station_id"), "di.product_id", "di.qty")
+            ->select(DB::raw("d.[to] as station_id"), "di.product_id", "di.qty", DB::raw("di.price * di.qty as cost_value"))
             ->whereBetween("d.created_at", [$fromDate, $toDate]);
 
         $union = $receiptPart->unionAll($deliveryPart);
@@ -59,7 +59,8 @@ class DashboardController extends Controller
             ->select([
                 'station_id',
                 'product_id',
-                DB::raw('SUM(qty) as qty')
+                DB::raw('SUM(qty) as qty'),
+                DB::raw('SUM(cost_value) as receipt_value')
             ])
             ->groupBy('station_id', 'product_id');
 
@@ -87,9 +88,13 @@ class DashboardController extends Controller
                 DB::raw("p.name as product"),
                 DB::raw("coalesce(p.costprice, 0) as cost_price"),
                 DB::raw("coalesce(from_stock.stock, 0) as [from]"),
+                DB::raw("coalesce(from_stock.from_value, 0) as from_value"),
                 DB::raw("coalesce(to_stock.stock, 0) as [to]"),
+                DB::raw("coalesce(to_stock.to_value, 0) as to_value"),
                 DB::raw("coalesce(delivery.qty,0) as [delivery]"),
-                DB::raw("coalesce(receipt.qty,0) as [receipt]")
+                DB::raw("coalesce(delivery.delivery_value,0) as delivery_value"),
+                DB::raw("coalesce(receipt.qty,0) as [receipt]"),
+                DB::raw("coalesce(receipt.receipt_value,0) as receipt_value"),
             ])
             ->where(function ($query) {
                 $query->whereRaw("coalesce(from_stock.stock, 0) != 0")
