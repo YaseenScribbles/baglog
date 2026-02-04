@@ -86,6 +86,7 @@ class DashboardController extends Controller
             ->select([
                 DB::raw("s.name as station"),
                 DB::raw("p.name as product"),
+                "p.product_type",
                 DB::raw("coalesce(p.costprice, 0) as cost_price"),
                 DB::raw("coalesce(from_stock.stock, 0) as [from]"),
                 DB::raw("coalesce(from_stock.from_value, 0) as from_value"),
@@ -102,7 +103,8 @@ class DashboardController extends Controller
                     ->orWhereRaw("coalesce(delivery.qty, 0) != 0")
                     ->orWhereRaw("coalesce(receipt.qty, 0) != 0");
             })
-            ->orderBy('s.id');
+            ->orderBy('s.id')
+            ->orderBy('p.product_type');
 
         // $sql = $stock->toSql();
         // Log::info($sql);

@@ -150,7 +150,7 @@ const Products = (props) => {
                             <Heading level={3}>
                                 {editId ? "Update Product" : "Create Product"}
                             </Heading>
-                            <Box direction="row" gap={"xsmall"}>
+                            <Box direction="row" gap={"xsmall"} flex="grow">
                                 <Box basis="30%">
                                     <FormField
                                         name="code"
@@ -162,6 +162,11 @@ const Products = (props) => {
                                             name="code"
                                             value={data.code}
                                             onChange={handleChange}
+                                            size={
+                                                size === "large"
+                                                    ? "medium"
+                                                    : "small"
+                                            }
                                         />
                                     </FormField>
                                 </Box>
@@ -176,11 +181,16 @@ const Products = (props) => {
                                             name="name"
                                             value={data.name}
                                             onChange={handleChange}
+                                            size={
+                                                size === "large"
+                                                    ? "medium"
+                                                    : "small"
+                                            }
                                         />
                                     </FormField>
                                 </Box>
                             </Box>
-                            <Box direction="row" gap={"xsmall"}>
+                            <Box direction="row" gap={"xsmall"} flex="grow">
                                 <Box>
                                     <FormField
                                         name="costprice"
@@ -192,6 +202,11 @@ const Products = (props) => {
                                             name="costprice"
                                             value={data.costprice ?? ""}
                                             onChange={handleChange}
+                                            size={
+                                                size === "large"
+                                                    ? "medium"
+                                                    : "small"
+                                            }
                                         />
                                     </FormField>
                                 </Box>
@@ -206,15 +221,21 @@ const Products = (props) => {
                                             name="per_pack"
                                             value={data.per_pack ?? ""}
                                             onChange={handleChange}
+                                            size={
+                                                size === "large"
+                                                    ? "medium"
+                                                    : "small"
+                                            }
                                         />
                                     </FormField>
                                 </Box>
                             </Box>
-                            <Box direction="row" gap={"xsmall"}>
+                            <Box direction="row" gap={"xsmall"} flex="grow">
                                 <Box basis="100%" height={"100%"}>
                                     <FormField
                                         name="product_type"
                                         htmlFor="product_type"
+                                        label="Product Type"
                                     >
                                         <Select
                                             id="product_type"
@@ -239,15 +260,18 @@ const Products = (props) => {
                                                     e.option,
                                                 );
                                             }}
-                                            placeholder={"Product Type"}
+                                            size={
+                                                size === "large"
+                                                    ? "medium"
+                                                    : "small"
+                                            }
                                         />
                                     </FormField>
                                 </Box>
                             </Box>
                             <Box
                                 margin={{ bottom: "small" }}
-                                flex="grow"
-                                height={"300px"}
+                                height="300px"
                                 overflow={{ vertical: "auto" }}
                             >
                                 <FileInput

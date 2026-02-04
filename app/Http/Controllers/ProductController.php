@@ -20,7 +20,8 @@ class ProductController extends Controller
 
         $productsSql = DB::table('products', 'p')
             ->join('users as u', 'u.id', '=', 'p.created_by')
-            ->select(['p.id', 'p.code', 'p.name', 'p.costprice', DB::raw('u.name as created_by'), 'p.per_pack', 'p.product_type']);
+            ->select(['p.id', 'p.code', 'p.name', 'p.costprice', DB::raw('u.name as created_by'), 'p.per_pack', 'p.product_type'])
+            ->orderBy('p.product_type');
 
         return inertia('Products', [
             'products' => fn() => $productsSql->get()
