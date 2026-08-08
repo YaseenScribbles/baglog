@@ -22,7 +22,7 @@ class DeliveryController extends Controller
             ->select('d.id', 'd.created_at', 'd.ref_no', DB::raw('s1.name as [from]'), DB::raw('s2.name as [to]'), 'd.total_qty', DB::raw('u.name as created_by'), DB::raw('ROW_NUMBER () OVER (ORDER BY d.id) as s_no'));
 
         $stationsSql = DB::table('stations', 's')
-            ->select('s.id', 's.name');
+            ->select('s.id', 's.name', 's.type');
 
         $productsSql = DB::table('products', 'p')
             ->select('p.id', DB::raw("p.name + ISNULL(' (' + CAST(p.per_pack AS VARCHAR(10)) + ')', '') AS name"), 'p.product_type');

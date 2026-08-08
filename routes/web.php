@@ -10,6 +10,7 @@ use App\Http\Controllers\StationController;
 use App\Http\Controllers\UserController;
 use App\Models\StockSummary;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -68,6 +69,25 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
 
         $stock = StockSummary::where('station_id', $station)->where('product_id', $product)->value('stock');
         return response()->json(['stock' => $stock ?? 0]);
+    });
+
+    //All available stock at a station (reference list shown alongside manual delivery entry)
+    Route::get('/deliverystock/all', function (Request $request) {
+        $station = $request->query('station_id');
+
+        $stock = DB::table('stock_summary as st')
+            ->join('products as p', 'p.id', '=', 'st.product_id')
+            ->where('st.station_id', $station)
+            ->where('st.stock', '>', 0)
+            ->select([
+                'p.id as product_id',
+                DB::raw("p.name + ISNULL(' (' + CAST(p.per_pack AS VARCHAR(10)) + ')', '') AS name"),
+                DB::raw('st.stock as qty'),
+            ])
+            ->orderBy('p.name')
+            ->get();
+
+        return response()->json($stock);
     });
 
     //Report

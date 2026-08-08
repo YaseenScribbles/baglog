@@ -24,7 +24,14 @@ import {
     Collapsible,
 } from "grommet";
 import MyHeader from "./Components/Header";
-import { useContext, useEffect, useReducer, useRef, useState } from "react";
+import {
+    memo,
+    useContext,
+    useEffect,
+    useReducer,
+    useRef,
+    useState,
+} from "react";
 import { Trash, Shop, Add, Edit, Download, FormSubtract } from "grommet-icons";
 import axios from "axios";
 import { format } from "date-fns";
@@ -43,12 +50,62 @@ const reducer = (state, action) => {
         case "remove":
             const newState = state.filter((s) => s.id != action.payload);
             return newState;
+        case "setQty":
+            return state.map((item) =>
+                item.id === action.payload.id
+                    ? { ...item, qty: action.payload.qty }
+                    : item,
+            );
+        case "loadAll":
+            return action.payload;
         case "clear":
             return [];
         default:
             return state;
     }
 };
+
+const QtyInput = memo(({ item, dispatch }) => {
+    const [value, setValue] = useState(item.qty);
+
+    useEffect(() => {
+        setValue(item.qty);
+    }, [item.qty]);
+
+    const flush = () => {
+        if (value !== item.qty) {
+            dispatch({
+                type: "setQty",
+                payload: { id: item.id, qty: value },
+            });
+        }
+    };
+
+    return (
+        <TextInput
+            value={value}
+            placeholder="0"
+            textAlign="center"
+            size="small"
+            style={{ width: "80px" }}
+            onChange={(e) => {
+                const qty = e.target.value;
+                if (isNaN(qty)) return;
+                if (
+                    item.stock !== undefined &&
+                    qty !== "" &&
+                    +qty > +item.stock
+                )
+                    return;
+                setValue(qty);
+            }}
+            onBlur={flush}
+            onKeyDown={(e) => {
+                if (e.key === "Enter") e.target.blur();
+            }}
+        />
+    );
+});
 
 const Deliveries = (props) => {
     const { data, setData, processing, post, put } = useForm({
@@ -77,6 +134,7 @@ const Deliveries = (props) => {
     const productRef = useRef();
     const size = useContext(ResponsiveContext);
     const [loading, setLoading] = useState(false);
+    const [loadingStock, setLoadingStock] = useState(false);
     const [currentStock, setCurrentStock] = useState(0);
     const [showForm, setShowForm] = useState(false);
 
@@ -113,8 +171,8 @@ const Deliveries = (props) => {
             return;
         }
 
-        if (items.length === 0) {
-            setMessage("No Data");
+        if (data.delivery_items.length === 0) {
+            setMessage("Enter qty for at least one product");
             return;
         }
 
@@ -150,8 +208,8 @@ const Deliveries = (props) => {
             return;
         }
 
-        if (items.length === 0) {
-            setMessage("No Data");
+        if (data.delivery_items.length === 0) {
+            setMessage("Enter qty for at least one product");
             return;
         }
 
@@ -183,6 +241,25 @@ const Deliveries = (props) => {
         });
     };
 
+    const loadAllStock = (stationId) => {
+        setLoadingStock(true);
+        axios
+            .get(`/deliverystock/all?station_id=${stationId}`)
+            .then(({ data }) => {
+                dispatch({
+                    type: "loadAll",
+                    payload: data.map((item) => ({
+                        id: item.product_id,
+                        name: item.name,
+                        stock: item.qty,
+                        qty: "",
+                    })),
+                });
+            })
+            .catch((e) => console.log(e))
+            .finally(() => setLoadingStock(false));
+    };
+
     useEffect(() => {
         if (selectedFromStation) {
             setData((prev) => ({
@@ -200,12 +277,23 @@ const Deliveries = (props) => {
     }, [selectedFromStation, selectedToStation]);
 
     useEffect(() => {
-        const qty = items?.reduce((acc, curr) => acc + +curr.qty, 0);
+        if (
+            editId === null &&
+            selectedFromStation &&
+            selectedToStation?.type === "customer"
+        ) {
+            loadAllStock(selectedFromStation.id);
+        }
+    }, [selectedFromStation, selectedToStation]);
+
+    useEffect(() => {
+        const validItems = items.filter((item) => +item.qty > 0);
+        const qty = validItems.reduce((acc, curr) => acc + +curr.qty, 0);
 
         setData((prev) => ({
             ...prev,
             total_qty: qty,
-            delivery_items: items.map((item) => ({
+            delivery_items: validItems.map((item) => ({
                 product_id: item.id,
                 qty: item.qty,
             })),
@@ -318,6 +406,11 @@ const Deliveries = (props) => {
                                                             e.option,
                                                         );
                                                     }}
+                                                    disabled={
+                                                        selectedToStation?.type ===
+                                                            "customer" &&
+                                                        items.length > 0
+                                                    }
                                                     size="small"
                                                 />
                                             </FormField>
@@ -506,6 +599,23 @@ const Deliveries = (props) => {
                                                 productRef.current.focus();
                                             }}
                                         />
+                                        {selectedToStation?.type ===
+                                            "customer" && (
+                                            <Button
+                                                type="button"
+                                                label="Reload Stock"
+                                                disabled={
+                                                    !selectedFromStation ||
+                                                    loadingStock
+                                                }
+                                                onClick={() =>
+                                                    loadAllStock(
+                                                        selectedFromStation.id,
+                                                    )
+                                                }
+                                                size="small"
+                                            />
+                                        )}
                                     </Box>
                                     <Box
                                         overflow={{ vertical: "auto" }}
@@ -535,6 +645,12 @@ const Deliveries = (props) => {
                                                         scope="col"
                                                         border="bottom"
                                                     >
+                                                        <strong>Stock</strong>
+                                                    </TableCell>
+                                                    <TableCell
+                                                        scope="col"
+                                                        border="bottom"
+                                                    >
                                                         <strong>Qty</strong>
                                                     </TableCell>
                                                     <TableCell
@@ -550,14 +666,20 @@ const Deliveries = (props) => {
                                                     <TableRow>
                                                         <TableCell
                                                             scope="row"
-                                                            colSpan={3}
+                                                            colSpan={4}
                                                             align="center"
                                                         >
-                                                            <Text
-                                                                color={"dark-6"}
-                                                            >
-                                                                No Data
-                                                            </Text>
+                                                            {loadingStock ? (
+                                                                <Spinner color="accent-1" />
+                                                            ) : (
+                                                                <Text
+                                                                    color={
+                                                                        "dark-6"
+                                                                    }
+                                                                >
+                                                                    No Data
+                                                                </Text>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 ) : (
@@ -567,9 +689,22 @@ const Deliveries = (props) => {
                                                                 {item.name}
                                                             </TableCell>
                                                             <TableCell>
-                                                                {(+item.qty).toFixed(
-                                                                    0,
-                                                                )}
+                                                                {item.stock !==
+                                                                undefined
+                                                                    ? (+item.stock).toFixed(
+                                                                          0,
+                                                                      )
+                                                                    : "-"}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <QtyInput
+                                                                    item={
+                                                                        item
+                                                                    }
+                                                                    dispatch={
+                                                                        dispatch
+                                                                    }
+                                                                />
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Button
@@ -604,6 +739,12 @@ const Deliveries = (props) => {
                                                     }}
                                                 >
                                                     <TableRow>
+                                                        <TableCell
+                                                            scope="col"
+                                                            border={{
+                                                                side: "horizontal",
+                                                            }}
+                                                        ></TableCell>
                                                         <TableCell
                                                             scope="col"
                                                             border={{
