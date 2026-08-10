@@ -477,7 +477,13 @@ const Deliveries = (props) => {
                                                 }}
                                                 size="small"
                                                 ref={productRef}
-                                                disabled={data.from === ""}
+                                                disabled={
+                                                    data.from === "" ||
+                                                    loadingStock ||
+                                                    (selectedToStation?.type ===
+                                                        "customer" &&
+                                                        items.length > 0)
+                                                }
                                                 onSearch={(text) => {
                                                     const filtered =
                                                         products.filter((p) =>
@@ -532,11 +538,23 @@ const Deliveries = (props) => {
                                                     );
                                                 }}
                                                 size="small"
-                                                disabled={data.from === ""}
+                                                disabled={
+                                                    data.from === "" ||
+                                                    loadingStock ||
+                                                    (selectedToStation?.type ===
+                                                        "customer" &&
+                                                        items.length > 0)
+                                                }
                                             />
                                         </FormField>
                                         <Button
-                                            disabled={data.from === ""}
+                                            disabled={
+                                                data.from === "" ||
+                                                loadingStock ||
+                                                (selectedToStation?.type ===
+                                                    "customer" &&
+                                                    items.length > 0)
+                                            }
                                             type="button"
                                             icon={<Add />}
                                             onClick={() => {
@@ -577,8 +595,10 @@ const Deliveries = (props) => {
                                                 if (index === -1) {
                                                     dispatch({
                                                         type: "add",
-                                                        payload:
-                                                            selectedProduct,
+                                                        payload: {
+                                                            ...selectedProduct,
+                                                            stock: currentStock,
+                                                        },
                                                     });
                                                 } else {
                                                     dispatch({
